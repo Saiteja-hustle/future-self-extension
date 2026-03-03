@@ -7,7 +7,6 @@
     "storage",
     "webNavigation",
     "tabs",
-    "activeTab",
     "alarms"
   ],
   "host_permissions": [
