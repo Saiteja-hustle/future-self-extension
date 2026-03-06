@@ -1,12 +1,12 @@
-// SleepShield — Popup Dashboard
+// Future Self — Popup Dashboard
 
 (async function () {
   const config = await chrome.storage.local.get([
-    "setupComplete", "wakeTime", "blockStartTime",
-    "streak", "blockedTonight"
+    "futureself_setupComplete", "futureself_wakeTime", "futureself_blockStartTime",
+    "futureself_streak", "futureself_blockedTonight"
   ]);
 
-  if (!config.setupComplete) {
+  if (!config.futureself_setupComplete) {
     document.getElementById("setup-prompt").classList.remove("hidden");
     document.getElementById("btn-setup").addEventListener("click", () => {
       chrome.runtime.openOptionsPage();
@@ -17,10 +17,10 @@
   // Show dashboard
   document.getElementById("dashboard").classList.remove("hidden");
 
-  const wakeTime = config.wakeTime || "06:00";
-  const blockStart = config.blockStartTime || "22:00";
-  const streak = config.streak || 0;
-  const blockedTonight = config.blockedTonight || 0;
+  const wakeTime = config.futureself_wakeTime || "06:00";
+  const blockStart = config.futureself_blockStartTime || "22:00";
+  const streak = config.futureself_streak || 0;
+  const blockedTonight = config.futureself_blockedTonight || 0;
 
   // Determine if blocking is currently active
   const now = new Date();
@@ -31,29 +31,28 @@
 
   // Status badge
   const badge = document.getElementById("status-badge");
-  const icon = document.getElementById("status-icon");
   const text = document.getElementById("status-text");
 
   if (isActive) {
-    badge.className = "status-badge active";
-    icon.textContent = "\u{1F6E1}\uFE0F";
-    text.textContent = "Active";
+    badge.className = "fs-status-badge active";
+    text.textContent = "Your future self is protected";
   } else {
-    badge.className = "status-badge inactive";
-    icon.textContent = "\u{1F634}";
-    text.textContent = "Inactive";
+    badge.className = "fs-status-badge inactive";
+    text.textContent = "Daytime. Browse freely.";
   }
 
   // Schedule info
   const info = document.getElementById("schedule-info");
   if (isActive) {
-    info.textContent = `Blocking until ${formatTime12h(wakeTime)}`;
+    info.textContent = "Blocking until " + formatTime12h(wakeTime);
   } else {
-    info.textContent = `Screens off at ${formatTime12h(blockStart)}`;
+    info.textContent = "Screens off at " + formatTime12h(blockStart);
   }
 
   // Stats
-  document.getElementById("streak-count").textContent = `\u{1F6E1}\uFE0F ${streak}`;
+  document.getElementById("streak-count").textContent = streak;
+  document.getElementById("streak-label").textContent =
+    streak === 1 ? "night protected" : "nights protected";
   document.getElementById("blocked-count").textContent = blockedTonight;
 
   // Settings link
@@ -77,6 +76,6 @@
     const [h, m] = time24.split(":").map(Number);
     const suffix = h >= 12 ? "PM" : "AM";
     const h12 = h % 12 || 12;
-    return `${h12}:${String(m).padStart(2, "0")} ${suffix}`;
+    return h12 + ":" + String(m).padStart(2, "0") + " " + suffix;
   }
 })();

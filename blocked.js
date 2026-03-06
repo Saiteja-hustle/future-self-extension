@@ -1,30 +1,30 @@
-// SleepShield — Blocked Page Logic (v3)
+// Future Self — Intercept Page Logic
 // 60/40 question-vs-game selection, 3 mini-games, breathwork,
 // zone-aware questions, time selector, farewell flow.
 
 (async function () {
-  // ── Constants ──────────────────────────────
+  // Constants
 
-  const FAREWELL_MESSAGES = [
-    { emoji: "\u23f3", text: "Clock's ticking \u23f3 Make it count." },
-    { emoji: "\ud83e\udee1", text: "You've got {dur}. Use them wisely \ud83e\udee1" },
-    { emoji: "\ud83c\udfc3", text: "Alright, go speed-run whatever this is \ud83c\udfc3" },
-    { emoji: "\ud83d\udecf\ufe0f", text: "The bed will be waiting \ud83d\udecf\ufe0f" },
-    { emoji: "\ud83d\udc40", text: "Fine. But we're watching \ud83d\udc40" },
-    { emoji: "\ud83e\udee1", text: "Permission granted, soldier \ud83e\udee1 Return to base soon." },
-    { emoji: "\ud83d\ude2e\u200d\ud83d\udca8", text: "Your pillow just sighed \ud83d\ude2e\u200d\ud83d\udca8" }
+  var FAREWELL_MESSAGES = [
+    "Clock's ticking. Make it count.",
+    "You've got {dur}. Use them wisely.",
+    "Alright, go speed-run whatever this is.",
+    "The bed will be waiting.",
+    "Fine. But your future self is watching.",
+    "Permission granted. Return to base soon.",
+    "Your pillow just sighed."
   ];
 
-  const SLIDER_POSITIONS = [
-    { emoji: "\ud83d\ude0e", label: "Full battery mode", desc: "Tomorrow-you wakes up feeling like a superhero. Meetings? Crushed. Workout? Easy. Vibes? Immaculate.", bg: "#0f1a2e", ring: "#4ade80", offset: 0 },
-    { emoji: "\ud83d\ude42", label: "Mostly fine", desc: "Slightly less sharp but you'll survive. Coffee will do the heavy lifting.", bg: "#121a2e", ring: "#86efac", offset: 0.5 },
-    { emoji: "\ud83d\ude10", label: "Tomorrow's gonna be mid", desc: "That 2pm meeting? You're zoning out. That workout? Skipped. But hey, you saw some memes.", bg: "#1a142e", ring: "#fbbf24", offset: 1 },
-    { emoji: "\ud83d\ude35\u200d\ud83d\udcab", label: "Brain fog incoming", desc: "Your decision-making drops to 'should I get a third coffee?' levels. Productivity is a myth.", bg: "#261428", ring: "#f97316", offset: 1.5 },
-    { emoji: "\ud83e\udd74", label: "Zombie mode activated", desc: "You'll reread the same email 4 times. Your face will look like you slept in a washing machine.", bg: "#2e0f14", ring: "#ef4444", offset: 2 },
+  var SLIDER_POSITIONS = [
+    { emoji: "\ud83d\ude0e", label: "Full battery mode", desc: "Tomorrow-you wakes up feeling like a superhero. Meetings? Crushed. Workout? Easy. Vibes? Immaculate.", bg: "#0B0E14", ring: "#4ade80", offset: 0 },
+    { emoji: "\ud83d\ude42", label: "Mostly fine", desc: "Slightly less sharp but you'll survive. Coffee will do the heavy lifting.", bg: "#0f1420", ring: "#86efac", offset: 0.5 },
+    { emoji: "\ud83d\ude10", label: "Tomorrow's gonna be mid", desc: "That 2pm meeting? You're zoning out. That workout? Skipped. But hey, you saw some memes.", bg: "#151020", ring: "#fbbf24", offset: 1 },
+    { emoji: "\ud83d\ude35\u200d\ud83d\udcab", label: "Brain fog incoming", desc: "Your decision-making drops to 'should I get a third coffee?' levels. Productivity is a myth.", bg: "#1a0f20", ring: "#f97316", offset: 1.5 },
+    { emoji: "\ud83e\udd74", label: "Zombie mode activated", desc: "You'll reread the same email 4 times. Your face will look like you slept in a washing machine.", bg: "#1f0a14", ring: "#ef4444", offset: 2 },
     { emoji: "\ud83d\udc80", label: "RIP tomorrow", desc: "Just cancel your plans. Tomorrow isn't a day \u2014 it's a survival mission.", bg: "#1a0505", ring: "#dc2626", offset: 3 }
   ];
 
-  const TYPING_SENTENCES = {
+  var TYPING_SENTENCES = {
     early: [
       "I am choosing memes over dreams",
       "My pillow can wait apparently",
@@ -43,73 +43,73 @@
     ]
   };
 
-  const TRIVIA_TF = [
-    { statement: "Your brain is more active during REM sleep than when you're awake.", answer: true, reveal: "Your brain is basically running a full Netflix series in there. \ud83c\udfac" },
-    { statement: "You can 'catch up' on sleep over the weekend.", answer: false, reveal: "Sleep debt compounds. Weekend lie-ins help a little but don't erase the damage. \ud83d\udcca" },
-    { statement: "Sleeping less than 6 hours affects you like being legally drunk.", answer: true, reveal: "After 17+ hours awake, your impairment equals 0.05% blood alcohol. \ud83c\udf7a" },
-    { statement: "Your phone's night mode makes screen time before bed safe.", answer: false, reveal: "Night mode reduces blue light ~30-50%, but the stimulation from content still delays sleep. \ud83d\udcf1" },
-    { statement: "Hitting snooze actually makes you MORE tired.", answer: true, reveal: "Each snooze starts a new sleep cycle your body can't finish. That's why you feel worse. \u23f0" }
+  var TRIVIA_TF = [
+    { statement: "Your brain is more active during REM sleep than when you're awake.", answer: true, reveal: "Your brain is basically running a full Netflix series in there." },
+    { statement: "You can 'catch up' on sleep over the weekend.", answer: false, reveal: "Sleep debt compounds. Weekend lie-ins help a little but don't erase the damage." },
+    { statement: "Sleeping less than 6 hours affects you like being legally drunk.", answer: true, reveal: "After 17+ hours awake, your impairment equals 0.05% blood alcohol." },
+    { statement: "Your phone's night mode makes screen time before bed safe.", answer: false, reveal: "Night mode reduces blue light ~30-50%, but the stimulation from content still delays sleep." },
+    { statement: "Hitting snooze actually makes you MORE tired.", answer: true, reveal: "Each snooze starts a new sleep cycle your body can't finish. That's why you feel worse." }
   ];
 
-  const TRIVIA_FACTS = [
-    "Right now your body temperature is dropping to prepare for sleep. Fighting it means fighting biology. \ud83c\udf21\ufe0f",
-    "Melatonin has been flooding your system. Your screen is the only thing holding the dam. \ud83c\udf0a",
-    "Your brain is ready to start its nightly cleanup \u2014 flushing out toxins. But only if you sleep. \ud83e\uddf9",
-    "Growth hormone peaks in the first 2 hours of sleep. Every minute you delay, that window shrinks. \ud83d\udcc9"
+  var TRIVIA_FACTS = [
+    "Right now your body temperature is dropping to prepare for sleep. Fighting it means fighting biology.",
+    "Melatonin has been flooding your system. Your screen is the only thing holding the dam.",
+    "Your brain is ready to start its nightly cleanup \u2014 flushing out toxins. But only if you sleep.",
+    "Growth hormone peaks in the first 2 hours of sleep. Every minute you delay, that window shrinks."
   ];
 
-  const TRIVIA_PICKS = [
-    { question: "Pick your morning tomorrow:", a: "Alarm goes off, I stretch, I feel human \ud83c\udf05", b: "Alarm goes off, snooze \u00d74, I hate everything \ud83d\ude24", reveal: "Choice A requires closing this tab. Just saying." },
-    { question: "What sounds better right now?", a: "Cozy blanket + actual rest \ud83d\udecf\ufe0f", b: "Scroll content I won't remember in 10 min \ud83d\udcf1", reveal: "We both know the answer. Goodnight. \ud83d\ude34" }
+  var TRIVIA_PICKS = [
+    { question: "Pick your morning tomorrow:", a: "Alarm goes off, I stretch, I feel human", b: "Alarm goes off, snooze x4, I hate everything", reveal: "Choice A requires closing this tab. Just saying." },
+    { question: "What sounds better right now?", a: "Cozy blanket + actual rest", b: "Scroll content I won't remember in 10 min", reveal: "We both know the answer. Goodnight." }
   ];
 
-  const TRIVIA_GOODNIGHTS = [
-    "That's your Sleep Shield for tonight. Sweet dreams. \ud83d\udee1\ufe0f",
-    "Cards done. Brain done. Screen done. Go be horizontal. \ud83d\udecf",
-    "You made it through the cards. Now make it through the night. \u2728",
-    "That's all we've got. The rest is up to you and your pillow. \ud83d\udca4"
+  var TRIVIA_GOODNIGHTS = [
+    "That's your Future Self for tonight. Sweet dreams.",
+    "Cards done. Brain done. Screen done. Go be horizontal.",
+    "You made it through the cards. Now make it through the night.",
+    "That's all we've got. The rest is up to you and your pillow."
   ];
 
-  // ── Parse URL params ───────────────────────
+  // Parse URL params
 
-  const params = new URLSearchParams(window.location.search);
-  const site = params.get("site") || "a website";
+  var params = new URLSearchParams(window.location.search);
+  var site = params.get("site") || "a website";
 
-  // ── Load config from storage ───────────────
+  // Load config from storage
 
-  const config = await chrome.storage.local.get([
-    "wakeTime", "blockStartTime", "streak",
-    "shownQuestions", "overrides", "shownGamesTonight"
+  var config = await chrome.storage.local.get([
+    "futureself_wakeTime", "futureself_blockStartTime", "futureself_streak",
+    "futureself_shownQuestions", "futureself_overrides", "futureself_shownGamesTonight"
   ]);
 
-  const wakeTime = config.wakeTime || "06:00";
-  const blockStartTime = config.blockStartTime || "22:00";
-  const streak = config.streak || 0;
-  const shownQuestions = config.shownQuestions || [];
-  const overrides = config.overrides || [];
-  const attempts = overrides.length;
-  const shownGames = config.shownGamesTonight || [];
+  var wakeTime = config.futureself_wakeTime || "06:00";
+  var blockStartTime = config.futureself_blockStartTime || "22:00";
+  var streak = config.futureself_streak || 0;
+  var shownQuestions = config.futureself_shownQuestions || [];
+  var overrides = config.futureself_overrides || [];
+  var attempts = overrides.length;
+  var shownGames = config.futureself_shownGamesTonight || [];
 
-  // ── Time calculations ──────────────────────
+  // Time calculations
 
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  const wakeTimeDisplay = formatTime12h(wakeTime);
-  const hoursLeft = calcHoursLeft(now, wakeTime);
-  const hoursLeftNum = calcHoursLeftNum(now, wakeTime);
+  var now = new Date();
+  var timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  var wakeTimeDisplay = formatTime12h(wakeTime);
+  var hoursLeft = calcHoursLeft(now, wakeTime);
+  var hoursLeftNum = calcHoursLeftNum(now, wakeTime);
 
-  // ── Determine zone ─────────────────────────
+  // Determine zone
 
-  const zone = determineZone(now, blockStartTime, wakeTime);
+  var zone = determineZone(now, blockStartTime, wakeTime);
 
-  // ── Track chosen override reason across screens ──
+  // Track chosen override reason across screens
 
-  let chosenReason = "";
+  var chosenReason = "";
 
-  // ── Choose and render experience ───────────
+  // Choose and render experience
 
   hideAllScreens();
-  const experience = chooseExperience();
+  var experience = chooseExperience();
 
   if (experience === "question") {
     await renderQuestion();
@@ -121,18 +121,16 @@
     renderTriviaGame();
   }
 
-  // ── Wire up override flow (shared) ─────────
+  // Wire up override flow (shared)
 
-  // Reason buttons → show time screen
-  document.querySelectorAll(".btn-reason").forEach(function (btn) {
+  document.querySelectorAll(".fs-btn-reason").forEach(function (btn) {
     btn.addEventListener("click", function () {
       chosenReason = btn.dataset.reason;
       showScreen("screen-time");
     });
   });
 
-  // Time buttons → create override + farewell
-  document.querySelectorAll(".btn-time").forEach(function (btn) {
+  document.querySelectorAll(".fs-btn-time").forEach(function (btn) {
     btn.addEventListener("click", async function () {
       var minutes = parseInt(btn.dataset.minutes, 10);
       await createOverride(site, chosenReason, zone, minutes);
@@ -140,25 +138,19 @@
     });
   });
 
-  // Back buttons
   document.getElementById("reason-back").addEventListener("click", closePage);
   document.getElementById("time-back").addEventListener("click", closePage);
 
-  // Breathwork buttons
-  document.querySelectorAll(".btn-breathe").forEach(function (btn) {
+  document.querySelectorAll(".fs-btn-breathe").forEach(function (btn) {
     btn.addEventListener("click", startBreathwork);
   });
   document.getElementById("breathwork-back").addEventListener("click", function () {
     document.getElementById("screen-breathwork").classList.add("hidden");
   });
 
-  // ═══════════════════════════════════════════
   // Experience Selection
-  // ═══════════════════════════════════════════
 
   function chooseExperience() {
-    // Determine probabilities: 60% question, 15% slider, 15% typing, 10% trivia
-    // Bias away from games already shown tonight
     var roll = Math.random();
     var gamePool = [];
 
@@ -166,40 +158,34 @@
     if (!shownGames.includes("typing")) gamePool.push("typing");
     if (!shownGames.includes("trivia")) gamePool.push("trivia");
 
-    // If all games have been shown, reset bias — allow any game
     if (gamePool.length === 0) gamePool = ["slider", "typing", "trivia"];
 
     if (roll < 0.60) {
       return "question";
     } else if (roll < 0.75) {
-      // 15% — prefer slider, fallback to pool
       return gamePool.includes("slider") ? "slider" : gamePool[Math.floor(Math.random() * gamePool.length)];
     } else if (roll < 0.90) {
-      // 15% — prefer typing
       return gamePool.includes("typing") ? "typing" : gamePool[Math.floor(Math.random() * gamePool.length)];
     } else {
-      // 10% — prefer trivia
       return gamePool.includes("trivia") ? "trivia" : gamePool[Math.floor(Math.random() * gamePool.length)];
     }
   }
 
-  // ═══════════════════════════════════════════
   // Text Question Renderer
-  // ═══════════════════════════════════════════
 
   async function renderQuestion() {
     showScreen("screen-question");
 
     document.getElementById("site-name").textContent = "You\u2019re trying to open " + site;
     document.getElementById("time-notice").textContent =
-      "It\u2019s " + timeStr + ". Your alarm is at " + wakeTimeDisplay + ".";
+      timeStr + " \u00b7 alarm at " + wakeTimeDisplay;
 
     var question = await pickQuestion(zone, streak, shownQuestions);
     var text = fillVariables(question.text);
     document.getElementById("question-text").textContent = text;
 
     shownQuestions.push(question.id);
-    await chrome.storage.local.set({ shownQuestions: shownQuestions });
+    await chrome.storage.local.set({ futureself_shownQuestions: shownQuestions });
 
     startFrictionTimer("q-countdown", "q-actions", 10);
 
@@ -209,9 +195,7 @@
     });
   }
 
-  // ═══════════════════════════════════════════
   // Game 1: Sleep Cost Slider
-  // ═══════════════════════════════════════════
 
   function renderSliderGame() {
     showScreen("screen-slider");
@@ -247,14 +231,11 @@
     document.getElementById("slider-ring").style.borderColor = data.ring;
     document.body.style.backgroundColor = data.bg;
 
-    // Update slider thumb color
-    var thumb = document.querySelector(".sleep-slider");
+    var thumb = document.querySelector(".fs-sleep-slider");
     if (thumb) thumb.style.setProperty("--thumb-border", data.ring);
   }
 
-  // ═══════════════════════════════════════════
   // Game 2: Commitment Challenge
-  // ═══════════════════════════════════════════
 
   function renderTypingGame() {
     showScreen("screen-typing");
@@ -267,14 +248,11 @@
     var input = document.getElementById("typing-input");
     var hint = document.getElementById("typing-hint");
 
-    // Build character spans
     renderTypingChars(display, sentence, "");
 
-    // Focus the hidden input
     input.focus();
     display.addEventListener("click", function () { input.focus(); });
 
-    // Disable paste
     input.addEventListener("paste", function (e) { e.preventDefault(); });
 
     input.addEventListener("input", function () {
@@ -285,9 +263,7 @@
         hint.textContent = typed.length + " / " + sentence.length + " characters";
       }
 
-      // Check completion
       if (typed.length >= sentence.length) {
-        // Verify all correct
         var allCorrect = true;
         for (var i = 0; i < sentence.length; i++) {
           if (typed[i] !== sentence[i]) { allCorrect = false; break; }
@@ -297,7 +273,6 @@
           hint.classList.add("hidden");
           input.disabled = true;
           document.getElementById("typing-complete").classList.remove("hidden");
-          // Auto-proceed to reason screen after 1.5s
           setTimeout(function () { showScreen("screen-reason"); }, 1500);
         }
       }
@@ -321,20 +296,17 @@
         cls = "pending cursor";
       }
       var ch = target[i] === " " ? "&nbsp;" : escapeHtml(target[i]);
-      html += '<span class="typing-char ' + cls + '">' + ch + "</span>";
+      html += '<span class="fs-typing-char ' + cls + '">' + ch + "</span>";
     }
     display.innerHTML = html;
   }
 
-  // ═══════════════════════════════════════════
   // Game 3: Trivia Swipe Cards
-  // ═══════════════════════════════════════════
 
   function renderTriviaGame() {
     showScreen("screen-trivia");
     trackGameShown("trivia");
 
-    // Assemble 5 cards: 2 T/F + 1 Fact + 1 Pick + 1 Goodnight
     var shuffledTF = shuffle(TRIVIA_TF.slice());
     var cards = [
       { type: "tf", data: shuffledTF[0] },
@@ -350,25 +322,22 @@
     var prevBtn = document.getElementById("trivia-prev");
     var nextBtn = document.getElementById("trivia-next");
 
-    // Build dots
     dotsContainer.innerHTML = "";
     for (var d = 0; d < cards.length; d++) {
       var dot = document.createElement("div");
-      dot.className = "trivia-dot" + (d === 0 ? " active" : "");
+      dot.className = "fs-trivia-dot" + (d === 0 ? " active" : "");
       dotsContainer.appendChild(dot);
     }
 
-    // Build cards
     track.innerHTML = "";
     for (var c = 0; c < cards.length; c++) {
       var cardEl = document.createElement("div");
-      cardEl.className = "trivia-card";
+      cardEl.className = "fs-trivia-card";
       cardEl.id = "trivia-card-" + c;
       cardEl.innerHTML = buildCardHTML(cards[c], c);
       track.appendChild(cardEl);
     }
 
-    // Wire card interactions
     for (var ci = 0; ci < cards.length; ci++) {
       wireCardInteraction(cards[ci], ci);
     }
@@ -384,9 +353,9 @@
 
     function slideTo(idx) {
       track.style.transform = "translateX(-" + (idx * 100) + "%)";
-      var dots = dotsContainer.querySelectorAll(".trivia-dot");
+      var dots = dotsContainer.querySelectorAll(".fs-trivia-dot");
       for (var i = 0; i < dots.length; i++) {
-        dots[i].className = "trivia-dot" + (i < idx ? " done" : "") + (i === idx ? " active" : "");
+        dots[i].className = "fs-trivia-dot" + (i < idx ? " done" : "") + (i === idx ? " active" : "");
       }
       updateTriviaNav();
     }
@@ -406,32 +375,32 @@
 
   function buildCardHTML(card, idx) {
     if (card.type === "tf") {
-      return '<div class="trivia-card-label">True or False</div>' +
-        '<p class="trivia-card-text">' + escapeHtml(card.data.statement) + '</p>' +
-        '<div class="trivia-btns">' +
-          '<button class="trivia-btn true-btn" data-card="' + idx + '" data-answer="true">TRUE</button>' +
-          '<button class="trivia-btn false-btn" data-card="' + idx + '" data-answer="false">FALSE</button>' +
+      return '<div class="fs-trivia-card-label">True or false</div>' +
+        '<p class="fs-trivia-card-text">' + escapeHtml(card.data.statement) + '</p>' +
+        '<div class="fs-trivia-btns">' +
+          '<button class="fs-trivia-btn true-btn" data-card="' + idx + '" data-answer="true">TRUE</button>' +
+          '<button class="fs-trivia-btn false-btn" data-card="' + idx + '" data-answer="false">FALSE</button>' +
         '</div>' +
-        '<div class="trivia-reveal-area" id="trivia-reveal-' + idx + '"></div>';
+        '<div class="fs-trivia-reveal-area" id="trivia-reveal-' + idx + '"></div>';
     }
     if (card.type === "fact") {
-      return '<div class="trivia-card-label">What\u2019s happening right now</div>' +
-        '<p class="trivia-card-text">' + escapeHtml(card.data) + '</p>';
+      return '<div class="fs-trivia-card-label">What\u2019s happening right now</div>' +
+        '<p class="fs-trivia-card-text">' + escapeHtml(card.data) + '</p>';
     }
     if (card.type === "pick") {
-      return '<div class="trivia-card-label">Quick pick</div>' +
-        '<p class="trivia-card-text">' + escapeHtml(card.data.question) + '</p>' +
-        '<div class="trivia-btns">' +
-          '<button class="trivia-btn" data-card="' + idx + '" data-pick="a">A) ' + escapeHtml(card.data.a) + '</button>' +
+      return '<div class="fs-trivia-card-label">Quick pick</div>' +
+        '<p class="fs-trivia-card-text">' + escapeHtml(card.data.question) + '</p>' +
+        '<div class="fs-trivia-btns">' +
+          '<button class="fs-trivia-btn" data-card="' + idx + '" data-pick="a">A) ' + escapeHtml(card.data.a) + '</button>' +
         '</div>' +
-        '<div class="trivia-btns" style="margin-top:0">' +
-          '<button class="trivia-btn" data-card="' + idx + '" data-pick="b">B) ' + escapeHtml(card.data.b) + '</button>' +
+        '<div class="fs-trivia-btns" style="margin-top:0">' +
+          '<button class="fs-trivia-btn" data-card="' + idx + '" data-pick="b">B) ' + escapeHtml(card.data.b) + '</button>' +
         '</div>' +
-        '<div class="trivia-reveal-area" id="trivia-reveal-' + idx + '"></div>';
+        '<div class="fs-trivia-reveal-area" id="trivia-reveal-' + idx + '"></div>';
     }
     if (card.type === "goodnight") {
-      return '<div class="trivia-card-label">Goodnight</div>' +
-        '<p class="trivia-card-goodnight">' + escapeHtml(card.data) + '</p>';
+      return '<div class="fs-trivia-card-label">Goodnight</div>' +
+        '<p class="fs-trivia-card-goodnight">' + escapeHtml(card.data) + '</p>';
     }
     return "";
   }
@@ -444,8 +413,8 @@
           var userAnswer = btn.dataset.answer === "true";
           var correct = userAnswer === card.data.answer;
           var area = document.getElementById("trivia-reveal-" + idx);
-          area.innerHTML = '<div class="trivia-reveal ' + (correct ? "correct" : "wrong") + '">' +
-            (correct ? "\u2705 Correct! " : "\u274c Nope! ") + escapeHtml(card.data.reveal) + '</div>';
+          area.innerHTML = '<div class="fs-trivia-reveal ' + (correct ? "correct" : "wrong") + '">' +
+            (correct ? "Correct! " : "Nope! ") + escapeHtml(card.data.reveal) + '</div>';
           btns.forEach(function (b) { b.disabled = true; });
         });
       });
@@ -455,16 +424,14 @@
       pickBtns.forEach(function (btn) {
         btn.addEventListener("click", function () {
           var area = document.getElementById("trivia-reveal-" + idx);
-          area.innerHTML = '<div class="trivia-reveal neutral">' + escapeHtml(card.data.reveal) + '</div>';
+          area.innerHTML = '<div class="fs-trivia-reveal neutral">' + escapeHtml(card.data.reveal) + '</div>';
           pickBtns.forEach(function (b) { b.disabled = true; });
         });
       });
     }
   }
 
-  // ═══════════════════════════════════════════
   // Breathwork
-  // ═══════════════════════════════════════════
 
   function startBreathwork() {
     var screen = document.getElementById("screen-breathwork");
@@ -481,7 +448,7 @@
     function runCycle() {
       if (breath >= totalBreaths) {
         text.textContent = "";
-        circle.className = "breathwork-circle";
+        circle.className = "fs-breathwork-circle";
         countEl.classList.add("hidden");
         doneEl.classList.remove("hidden");
         return;
@@ -489,20 +456,16 @@
 
       countEl.textContent = "Breath " + (breath + 1) + " of " + totalBreaths;
 
-      // Inhale 4s
-      circle.className = "breathwork-circle inhale";
+      circle.className = "fs-breathwork-circle inhale";
       text.textContent = "Breathe in\u2026";
       setTimeout(function () {
-        // Hold 4s
-        circle.className = "breathwork-circle hold-in";
+        circle.className = "fs-breathwork-circle hold-in";
         text.textContent = "Hold\u2026";
         setTimeout(function () {
-          // Exhale 6s
-          circle.className = "breathwork-circle exhale";
+          circle.className = "fs-breathwork-circle exhale";
           text.textContent = "Breathe out\u2026";
           setTimeout(function () {
-            // Hold 2s
-            circle.className = "breathwork-circle hold-out";
+            circle.className = "fs-breathwork-circle hold-out";
             text.textContent = "Hold\u2026";
             setTimeout(function () {
               breath++;
@@ -516,9 +479,7 @@
     runCycle();
   }
 
-  // ═══════════════════════════════════════════
   // Override + Time + Farewell Flow
-  // ═══════════════════════════════════════════
 
   function showFarewell(durationMinutes) {
     showScreen("screen-farewell");
@@ -533,8 +494,7 @@
       durLabel = durationMinutes + " min";
     }
 
-    document.getElementById("farewell-emoji").textContent = msg.emoji;
-    document.getElementById("farewell-text").textContent = msg.text.replace("{dur}", durLabel);
+    document.getElementById("farewell-text").textContent = msg.replace("{dur}", durLabel);
 
     setTimeout(function () {
       window.location.href = "https://" + site;
@@ -542,8 +502,8 @@
   }
 
   async function createOverride(domain, reason, currentZone, durationMinutes) {
-    var stored = await chrome.storage.local.get("overrides");
-    var ov = stored.overrides || [];
+    var stored = await chrome.storage.local.get("futureself_overrides");
+    var ov = stored.futureself_overrides || [];
 
     var nowDate = new Date();
     var expiresAt;
@@ -565,12 +525,10 @@
       zone: currentZone
     });
 
-    await chrome.storage.local.set({ overrides: ov });
+    await chrome.storage.local.set({ futureself_overrides: ov });
   }
 
-  // ═══════════════════════════════════════════
   // Question Selection
-  // ═══════════════════════════════════════════
 
   async function pickQuestion(currentZone, currentStreak, shownIds) {
     var res = await fetch(chrome.runtime.getURL("questions.json"));
@@ -586,7 +544,7 @@
 
     if (available.length === 0) {
       available = pool;
-      await chrome.storage.local.set({ shownQuestions: [] });
+      await chrome.storage.local.set({ futureself_shownQuestions: [] });
     }
 
     var byCategory = {};
@@ -614,9 +572,7 @@
     return { future_self: 1, intention_check: 1, pattern_recognition: 1, humor: 1, science: 1, identity: 1, morning_pull: 1 };
   }
 
-  // ═══════════════════════════════════════════
   // Friction Timer
-  // ═══════════════════════════════════════════
 
   function startFrictionTimer(countdownId, actionsId, totalSeconds) {
     var countdownEl = document.getElementById(countdownId);
@@ -625,20 +581,25 @@
 
     var interval = setInterval(function () {
       elapsed++;
+      var remaining = totalSeconds - elapsed;
+
       if (elapsed >= 3 && elapsed < totalSeconds) {
-        countdownEl.textContent = "Take a moment\u2026 " + (totalSeconds - elapsed);
+        countdownEl.textContent = "Take a moment\u2026 " + remaining;
+        // Amber warning in last 3 seconds
+        if (remaining <= 3) {
+          countdownEl.classList.add("fs-countdown-warn");
+        }
       }
       if (elapsed >= totalSeconds) {
         clearInterval(interval);
         countdownEl.textContent = "";
+        countdownEl.classList.remove("fs-countdown-warn");
         actionsEl.classList.add("visible");
       }
     }, 1000);
   }
 
-  // ═══════════════════════════════════════════
   // Utility Functions
-  // ═══════════════════════════════════════════
 
   function determineZone(nowDate, blockStart, wake) {
     var nowMinutes = nowDate.getHours() * 60 + nowDate.getMinutes();
@@ -726,7 +687,6 @@
     var el = document.getElementById(id);
     el.classList.remove("hidden");
     el.classList.add("screen-enter");
-    // Reset body background when leaving slider
     if (id !== "screen-slider") {
       document.body.style.backgroundColor = "";
     }
@@ -739,7 +699,7 @@
 
   async function trackGameShown(gameName) {
     shownGames.push(gameName);
-    await chrome.storage.local.set({ shownGamesTonight: shownGames });
+    await chrome.storage.local.set({ futureself_shownGamesTonight: shownGames });
   }
 
   function shuffle(arr) {
