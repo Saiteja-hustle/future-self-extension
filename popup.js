@@ -11,7 +11,19 @@
 
   // Check trial/paid status first
   const isPaid = config.futureself_isPaid === true;
-  const trialStart = config.futureself_trialStart;
+  var trialStart = config.futureself_trialStart;
+
+  // If setup is complete but trial was never initialized (e.g. pre-existing install),
+  // start the trial now so the countdown appears
+  if (!trialStart && !isPaid && config.futureself_setupComplete) {
+    trialStart = Date.now();
+    await chrome.storage.local.set({
+      futureself_trialStart: trialStart,
+      futureself_trialStatus: "active",
+      futureself_isPaid: false
+    });
+  }
+
   const trialActive = trialStart && (Date.now() - trialStart < TRIAL_DURATION_MS);
   const trialExpired = trialStart && !trialActive && !isPaid;
 
