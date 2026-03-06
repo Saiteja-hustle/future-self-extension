@@ -3,35 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SleepShield — Settings</title>
+  <title>Future Self — Settings</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <span class="logo">&#x1F6E1;&#xFE0F;</span>
-      <h1>SleepShield</h1>
-      <p class="tagline">Protect your sleep. Block your screens.</p>
+  <div class="fs-container">
+    <div class="fs-header">
+      <h1>Future Self</h1>
+      <p class="fs-tagline">Let's set up your future self.</p>
     </div>
 
     <!-- Sleep Schedule -->
-    <section class="card">
-      <h2>Your Sleep Schedule</h2>
+    <section class="fs-card">
+      <h2>Your sleep schedule</h2>
 
-      <div class="field">
+      <div class="fs-field">
         <label for="wake-time">What time do you want to wake up?</label>
         <input type="time" id="wake-time" value="06:00">
       </div>
 
-      <div class="field">
+      <div class="fs-field">
         <label for="sleep-hours">How many hours of sleep do you want?</label>
-        <div class="slider-row">
+        <div class="fs-slider-row">
           <input type="range" id="sleep-hours" min="6" max="9" step="0.5" value="7.5">
-          <span class="slider-value" id="sleep-hours-value">7.5 hrs</span>
+          <span class="fs-slider-value" id="sleep-hours-value">7.5 hrs</span>
         </div>
       </div>
 
-      <div class="field">
+      <div class="fs-field">
         <label for="buffer">Wind-down buffer before sleep?</label>
         <select id="buffer">
           <option value="0">0 minutes</option>
@@ -42,33 +43,33 @@
         </select>
       </div>
 
-      <div class="calculation" id="calculation">
-        <span class="calc-label">Screens off at</span>
-        <span class="calc-time" id="block-time">10:00 PM</span>
+      <div class="fs-calculation" id="calculation">
+        <span class="fs-calc-label">Screens off at</span>
+        <span class="fs-calc-time" id="block-time">10:00 PM</span>
       </div>
     </section>
 
     <!-- Blocklist -->
-    <section class="card">
-      <h2>Blocked Sites</h2>
-      <p class="card-desc">Choose which sites to block during your sleep window.</p>
+    <section class="fs-card">
+      <h2>Blocked sites</h2>
+      <p class="fs-card-desc">Choose which sites to block during your sleep window.</p>
 
       <div id="blocklist-categories"></div>
 
       <!-- Custom domains -->
-      <div class="custom-domains">
-        <h3>Custom Domains</h3>
-        <div class="custom-input-row">
+      <div class="fs-custom-domains">
+        <h3>Custom domains</h3>
+        <div class="fs-custom-input-row">
           <input type="text" id="custom-domain" placeholder="e.g. example.com">
-          <button class="btn btn-small" id="btn-add-domain">Add</button>
+          <button class="fs-btn fs-btn-small" id="btn-add-domain">Add</button>
         </div>
         <ul id="custom-domain-list"></ul>
       </div>
     </section>
 
     <!-- Save -->
-    <button class="btn btn-save" id="btn-save">Protect My Sleep</button>
-    <p class="save-msg hidden" id="save-msg"></p>
+    <button class="fs-btn fs-btn-save" id="btn-save">Protect My Sleep</button>
+    <p class="fs-save-msg hidden" id="save-msg"></p>
   </div>
 
   <script src="options.js"></script>

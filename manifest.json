@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "SleepShield",
+  "name": "Future Self",
   "version": "1.0.0",
-  "description": "Block distracting websites during your sleep window — including work tools, AI, and search engines.",
+  "description": "Your PC doesn't have a bedtime. Now it does. Block everything after bedtime — even your work.",
   "permissions": [
     "storage",
     "webNavigation",

@@ -1,4 +1,4 @@
-// SleepShield — Options / Onboarding Page
+// Future Self — Options / Onboarding Page
 
 const DEFAULT_CATEGORIES = {
   "Social Media": [
@@ -32,7 +32,7 @@ const DEFAULT_CATEGORIES = {
 
 // Callouts for specific categories
 const CATEGORY_CALLOUTS = {
-  "Work & Productivity": "Yes, we block work tools too. At midnight, work is a distraction from sleep."
+  "Work & Productivity": "Yes, we block work tools too. Because at midnight, work is a distraction from sleep."
 };
 
 // State
@@ -58,29 +58,27 @@ init();
 async function init() {
   // Load saved config if it exists
   const saved = await chrome.storage.local.get([
-    "wakeTime", "sleepHours", "buffer", "blocklist",
-    "customDomains", "setupComplete"
+    "futureself_wakeTime", "futureself_sleepHours", "futureself_buffer",
+    "futureself_blocklist", "futureself_customDomains", "futureself_setupComplete"
   ]);
 
-  if (saved.wakeTime) wakeTimeInput.value = saved.wakeTime;
-  if (saved.sleepHours) {
-    sleepHoursInput.value = saved.sleepHours;
-    sleepHoursValue.textContent = saved.sleepHours + " hrs";
+  if (saved.futureself_wakeTime) wakeTimeInput.value = saved.futureself_wakeTime;
+  if (saved.futureself_sleepHours) {
+    sleepHoursInput.value = saved.futureself_sleepHours;
+    sleepHoursValue.textContent = saved.futureself_sleepHours + " hrs";
   }
-  if (saved.buffer !== undefined) bufferSelect.value = saved.buffer;
-  if (saved.customDomains) customDomains = saved.customDomains;
+  if (saved.futureself_buffer !== undefined) bufferSelect.value = saved.futureself_buffer;
+  if (saved.futureself_customDomains) customDomains = saved.futureself_customDomains;
 
   // Initialize checked state: if saved blocklist exists, use it; otherwise all checked
-  if (saved.blocklist) {
-    // Build checked map from saved blocklist
+  if (saved.futureself_blocklist) {
     for (const [cat, domains] of Object.entries(DEFAULT_CATEGORIES)) {
-      const savedCatDomains = saved.blocklist[cat] || [];
+      const savedCatDomains = saved.futureself_blocklist[cat] || [];
       for (const d of domains) {
         checkedDomains[d] = savedCatDomains.includes(d);
       }
     }
   } else {
-    // All checked by default
     for (const domains of Object.values(DEFAULT_CATEGORIES)) {
       for (const d of domains) {
         checkedDomains[d] = true;
@@ -106,9 +104,6 @@ async function init() {
   btnSave.addEventListener("click", saveConfig);
 }
 
-/**
- * Calculate and display the block start time.
- */
 function updateCalculation() {
   const wakeTime = wakeTimeInput.value;
   const sleepHours = parseFloat(sleepHoursInput.value);
@@ -117,11 +112,9 @@ function updateCalculation() {
   const [wakeH, wakeM] = wakeTime.split(":").map(Number);
   const totalWakeMinutes = wakeH * 60 + wakeM;
 
-  // Block start = wake time - sleep hours - buffer
   const sleepMinutes = sleepHours * 60;
   let blockStartMinutes = totalWakeMinutes - sleepMinutes - buffer;
 
-  // Handle negative (wrap around midnight)
   if (blockStartMinutes < 0) blockStartMinutes += 1440;
 
   const blockH = Math.floor(blockStartMinutes / 60);
@@ -130,26 +123,23 @@ function updateCalculation() {
   blockTimeDisplay.textContent = formatTime12h(blockH, blockM);
 }
 
-/**
- * Render the categorized blocklist with checkboxes.
- */
 function renderCategories() {
   categoriesContainer.innerHTML = "";
 
   for (const [category, domains] of Object.entries(DEFAULT_CATEGORIES)) {
     const catDiv = document.createElement("div");
-    catDiv.className = "category";
+    catDiv.className = "fs-category";
 
     // Header with toggle all
     const header = document.createElement("div");
-    header.className = "category-header";
+    header.className = "fs-category-header";
 
     const title = document.createElement("h3");
     title.textContent = category;
     header.appendChild(title);
 
     const toggleBtn = document.createElement("button");
-    toggleBtn.className = "category-toggle";
+    toggleBtn.className = "fs-category-toggle";
     const allChecked = domains.every((d) => checkedDomains[d]);
     toggleBtn.textContent = allChecked ? "Uncheck all" : "Check all";
     toggleBtn.addEventListener("click", () => {
@@ -163,18 +153,18 @@ function renderCategories() {
     // Category callout if applicable
     if (CATEGORY_CALLOUTS[category]) {
       const callout = document.createElement("div");
-      callout.className = "category-callout";
+      callout.className = "fs-category-callout";
       callout.textContent = CATEGORY_CALLOUTS[category];
       catDiv.appendChild(callout);
     }
 
     // Domain chips
     const chipContainer = document.createElement("div");
-    chipContainer.className = "domain-list";
+    chipContainer.className = "fs-domain-list";
 
     for (const domain of domains) {
       const chip = document.createElement("label");
-      chip.className = "domain-chip" + (checkedDomains[domain] ? " checked" : "");
+      chip.className = "fs-domain-chip" + (checkedDomains[domain] ? " checked" : "");
 
       const cb = document.createElement("input");
       cb.type = "checkbox";
@@ -182,8 +172,7 @@ function renderCategories() {
       cb.addEventListener("change", () => {
         checkedDomains[domain] = cb.checked;
         chip.classList.toggle("checked", cb.checked);
-        // Update toggle button text
-        const parentToggle = catDiv.querySelector(".category-toggle");
+        const parentToggle = catDiv.querySelector(".fs-category-toggle");
         parentToggle.textContent = domains.every((d) => checkedDomains[d])
           ? "Uncheck all" : "Check all";
       });
@@ -198,14 +187,10 @@ function renderCategories() {
   }
 }
 
-/**
- * Add a custom domain to the list.
- */
 function addCustomDomain() {
   let domain = customDomainInput.value.trim().toLowerCase();
   if (!domain) return;
 
-  // Strip protocol and path
   domain = domain.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0];
 
   if (!domain || customDomains.includes(domain)) {
@@ -218,14 +203,11 @@ function addCustomDomain() {
   renderCustomDomains();
 }
 
-/**
- * Render the custom domain chips.
- */
 function renderCustomDomains() {
   customDomainList.innerHTML = "";
   for (const domain of customDomains) {
     const li = document.createElement("li");
-    li.className = "custom-chip";
+    li.className = "fs-custom-chip";
     li.textContent = domain;
 
     const removeBtn = document.createElement("button");
@@ -239,15 +221,11 @@ function renderCustomDomains() {
   }
 }
 
-/**
- * Save configuration to chrome.storage.local.
- */
 async function saveConfig() {
   const wakeTime = wakeTimeInput.value;
   const sleepHours = parseFloat(sleepHoursInput.value);
   const buffer = parseInt(bufferSelect.value, 10);
 
-  // Calculate block start time
   const [wakeH, wakeM] = wakeTime.split(":").map(Number);
   const totalWakeMinutes = wakeH * 60 + wakeM;
   let blockStartMinutes = totalWakeMinutes - sleepHours * 60 - buffer;
@@ -257,7 +235,6 @@ async function saveConfig() {
   const blockM = Math.round(blockStartMinutes % 60);
   const blockStartTime = `${String(blockH).padStart(2, "0")}:${String(blockM).padStart(2, "0")}`;
 
-  // Build blocklist from checked domains + custom domains
   const blocklist = {};
   for (const [category, domains] of Object.entries(DEFAULT_CATEGORIES)) {
     const checked = domains.filter((d) => checkedDomains[d]);
@@ -266,22 +243,21 @@ async function saveConfig() {
     }
   }
 
-  // Add custom domains as their own category
   if (customDomains.length > 0) {
     blocklist["Custom"] = [...customDomains];
   }
 
   await chrome.storage.local.set({
-    wakeTime,
-    sleepHours,
-    buffer,
-    blockStartTime,
-    blocklist,
-    customDomains,
-    setupComplete: true
+    futureself_wakeTime: wakeTime,
+    futureself_sleepHours: sleepHours,
+    futureself_buffer: buffer,
+    futureself_blockStartTime: blockStartTime,
+    futureself_blocklist: blocklist,
+    futureself_customDomains: customDomains,
+    futureself_setupComplete: true
   });
 
-  // Check if block time has already passed — activate immediately
+  // Check if block time has already passed
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
   const wakeMinutes = wakeH * 60 + wakeM;
@@ -289,11 +265,11 @@ async function saveConfig() {
 
   saveMsg.classList.remove("hidden");
   if (isCurrentlyBlocking) {
-    saveMsg.textContent = "Settings saved! Blocking is active right now. Sweet dreams.";
-    saveMsg.className = "save-msg info";
+    saveMsg.textContent = "Done. Your future self just got a bodyguard. Blocking is active right now.";
+    saveMsg.className = "fs-save-msg info";
   } else {
-    saveMsg.textContent = `Settings saved! Screens off at ${formatTime12h(blockH, blockM)}.`;
-    saveMsg.className = "save-msg success";
+    saveMsg.textContent = `Done. Your future self just got a bodyguard. Screens off at ${formatTime12h(blockH, blockM)}.`;
+    saveMsg.className = "fs-save-msg success";
   }
 }
 
