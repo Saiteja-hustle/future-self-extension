@@ -1,26 +1,24 @@
 // Future Self — Popup Dashboard
 
 (async function () {
-  const TRIAL_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+  // Check auth status from Supabase
+  var authStatus = await SupabaseAuth.checkAuthStatus();
 
-  const config = await chrome.storage.local.get([
+  var config = await chrome.storage.local.get([
     "futureself_setupComplete", "futureself_wakeTime", "futureself_blockStartTime",
-    "futureself_streak", "futureself_blockedTonight",
-    "futureself_trialStart", "futureself_trialStatus", "futureself_isPaid"
+    "futureself_streak", "futureself_blockedTonight"
   ]);
 
-  // Initialize trial start if it doesn't exist
-  if (!config.futureself_trialStart) {
-    config.futureself_trialStart = Date.now();
-    await chrome.storage.local.set({ futureself_trialStart: config.futureself_trialStart });
+  // Not logged in
+  if (!authStatus.isLoggedIn) {
+    document.getElementById("not-logged-in").classList.remove("fs-hidden");
+    document.getElementById("btn-login").addEventListener("click", function () {
+      chrome.tabs.create({ url: chrome.runtime.getURL("login.html") });
+    });
+    return;
   }
 
-  // Check trial/paid status first
-  const isPaid = config.futureself_isPaid === true;
-  const trialStart = config.futureself_trialStart;
-  const trialActive = trialStart && (Date.now() - trialStart < TRIAL_DURATION_MS);
-  const trialExpired = trialStart && !trialActive && !isPaid;
-
+  // Logged in but setup not complete
   if (!config.futureself_setupComplete) {
     document.getElementById("setup-prompt").classList.remove("fs-hidden");
     document.getElementById("btn-setup").addEventListener("click", function () {
@@ -29,8 +27,8 @@
     return;
   }
 
-  // Trial expired — show upgrade screen
-  if (trialExpired) {
+  // Trial expired and not paid
+  if (!authStatus.isTrialActive && !authStatus.isPaid) {
     document.getElementById("trial-expired").classList.remove("fs-hidden");
     document.getElementById("trial-nights").textContent = config.futureself_streak || 0;
     document.getElementById("trial-blocks").textContent = config.futureself_blockedTonight || 0;
@@ -39,6 +37,11 @@
 
   // Show dashboard
   document.getElementById("dashboard").classList.remove("fs-hidden");
+
+  // Show paid badge if lifetime
+  if (authStatus.isPaid) {
+    document.getElementById("paid-badge").classList.remove("fs-hidden");
+  }
 
   var wakeTime = config.futureself_wakeTime || "06:00";
   var blockStart = config.futureself_blockStartTime || "22:00";
@@ -86,15 +89,20 @@
   document.getElementById("blocked-count").textContent = blockedTonight;
 
   // Trial banner (only show for non-paid trial users)
-  if (!isPaid && trialActive) {
-    var hoursLeft = Math.max(0, Math.ceil((trialStart + TRIAL_DURATION_MS - Date.now()) / 3600000));
+  if (!authStatus.isPaid && authStatus.isTrialActive) {
     document.getElementById("trial-banner").classList.remove("fs-hidden");
-    document.getElementById("trial-text").textContent = "Free trial: " + hoursLeft + " hours remaining";
+    document.getElementById("trial-text").textContent = "Free trial: " + authStatus.trialHoursLeft + " hours remaining";
   }
 
   // Settings link
   document.getElementById("settings-link").addEventListener("click", function () {
     chrome.runtime.openOptionsPage();
+  });
+
+  // Logout link
+  document.getElementById("logout-link").addEventListener("click", async function () {
+    await SupabaseAuth.signOut();
+    window.location.reload();
   });
 
   function timeToMinutes(t) {

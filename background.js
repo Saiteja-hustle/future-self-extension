@@ -1,8 +1,8 @@
 // Future Self — Background Service Worker
 // Intercepts navigation and redirects blocked sites during the sleep window.
-// Includes 1-day free trial system.
+// Uses Supabase for authentication and trial tracking.
 
-var TRIAL_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+importScripts("supabase-client.js");
 
 // Default blocklist with categories
 var DEFAULT_BLOCKLIST = {
@@ -85,25 +85,20 @@ async function incrementBlockCount() {
   await chrome.storage.local.set({ futureself_blockedTonight: count + 1 });
 }
 
-async function checkTrialStatus() {
-  var data = await chrome.storage.local.get([
-    "futureself_trialStart", "futureself_isPaid"
-  ]);
-
-  if (data.futureself_isPaid === true) {
-    return "paid";
+// Check auth status — uses Supabase with local cache fallback
+async function getAuthStatus() {
+  try {
+    return await SupabaseAuth.checkAuthStatus();
+  } catch (e) {
+    var cached = await chrome.storage.local.get("futureself_auth_status");
+    return cached.futureself_auth_status || {
+      isLoggedIn: false,
+      isTrialActive: false,
+      isPaid: false,
+      trialHoursLeft: 0,
+      email: null
+    };
   }
-
-  var trialStart = data.futureself_trialStart;
-  if (!trialStart) {
-    return "no_trial";
-  }
-
-  if (Date.now() - trialStart < TRIAL_DURATION_MS) {
-    return "trial_active";
-  }
-
-  return "trial_expired";
 }
 
 // Main navigation handler
@@ -131,20 +126,21 @@ chrome.webNavigation.onBeforeNavigate.addListener(async function (details) {
   var result = checkBlocklist(domain, config.futureself_blocklist);
   if (!result.blocked) return;
 
-  // Check trial/paid status
-  var trialStatus = await checkTrialStatus();
+  // Check auth status
+  var authStatus = await getAuthStatus();
 
-  if (trialStatus === "trial_expired") {
-    // Show upgrade page instead of block page
+  if (!authStatus.isLoggedIn) {
+    // Not logged in — redirect to login
+    chrome.tabs.update(details.tabId, { url: chrome.runtime.getURL("login.html") });
+    return;
+  }
+
+  if (!authStatus.isTrialActive && !authStatus.isPaid) {
+    // Trial expired and not paid — show upgrade page
     var upgradeUrl = chrome.runtime.getURL(
       "upgrade.html?site=" + encodeURIComponent(result.domain)
     );
     chrome.tabs.update(details.tabId, { url: upgradeUrl });
-    return;
-  }
-
-  if (trialStatus === "no_trial") {
-    // No trial started and not paid — don't block
     return;
   }
 
@@ -164,7 +160,15 @@ chrome.webNavigation.onBeforeNavigate.addListener(async function (details) {
 // Reset nightly counters at wake time
 chrome.alarms.create("nightlyReset", { periodInMinutes: 1 });
 
+// Periodic auth check every 30 minutes
+chrome.alarms.create("authCheck", { periodInMinutes: 30 });
+
 chrome.alarms.onAlarm.addListener(async function (alarm) {
+  if (alarm.name === "authCheck") {
+    await getAuthStatus();
+    return;
+  }
+
   if (alarm.name !== "nightlyReset") return;
 
   var config = await chrome.storage.local.get([
@@ -207,16 +211,9 @@ chrome.alarms.onAlarm.addListener(async function (alarm) {
   }
 });
 
-// On install: open options page and initialize trial
+// On install: open login page (user needs to authenticate first)
 chrome.runtime.onInstalled.addListener(function (details) {
   if (details.reason === "install") {
-    // Initialize trial
-    chrome.storage.local.set({
-      futureself_trialStart: Date.now(),
-      futureself_trialStatus: "active",
-      futureself_isPaid: false
-    });
-
-    chrome.tabs.create({ url: chrome.runtime.getURL("options.html") });
+    chrome.tabs.create({ url: chrome.runtime.getURL("login.html") });
   }
 });

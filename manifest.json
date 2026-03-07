@@ -11,7 +11,8 @@
     "alarms"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "https://odcmrhnwxzgyfodoscqw.supabase.co/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -27,7 +28,7 @@
   "options_page": "options.html",
   "web_accessible_resources": [
     {
-      "resources": ["blocked.html", "blocked.css", "blocked.js", "questions.json", "upgrade.html"],
+      "resources": ["blocked.html", "blocked.css", "blocked.js", "questions.json", "upgrade.html", "login.html", "login.js", "supabase-client.js"],
       "matches": ["<all_urls>"]
     }
   ],

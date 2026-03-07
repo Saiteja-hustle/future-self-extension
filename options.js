@@ -50,7 +50,7 @@ var customDomainList = document.getElementById("custom-domain-list");
 var btnAddDomain = document.getElementById("btn-add-domain");
 var btnSave = document.getElementById("btn-save");
 var saveMsg = document.getElementById("save-msg");
-var activationInput = document.getElementById("activation-code");
+var activationInput = document.getElementById("activation-code"); // may be null if removed from HTML
 
 // Initialize
 init();
@@ -102,15 +102,17 @@ async function init() {
   });
   btnSave.addEventListener("click", saveConfig);
 
-  // Hidden activation code
-  activationInput.addEventListener("input", function () {
-    if (activationInput.value === "FUTURESELF2026") {
-      chrome.storage.local.set({ futureself_isPaid: true });
-      activationInput.value = "";
-      activationInput.placeholder = "Activated!";
-      activationInput.disabled = true;
-    }
-  });
+  // Hidden activation code (legacy — kept for backward compat)
+  if (activationInput) {
+    activationInput.addEventListener("input", function () {
+      if (activationInput.value === "FUTURESELF2026") {
+        chrome.storage.local.set({ futureself_isPaid: true });
+        activationInput.value = "";
+        activationInput.placeholder = "Activated!";
+        activationInput.disabled = true;
+      }
+    });
+  }
 }
 
 function updateCalculation() {
