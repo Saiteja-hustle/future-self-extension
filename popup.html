@@ -14,6 +14,12 @@
       <p class="fs-tagline">Tomorrow will thank you.</p>
     </div>
 
+    <!-- Not logged in -->
+    <div id="not-logged-in" class="fs-hidden">
+      <p class="fs-setup-msg">Sign in to protect your sleep.</p>
+      <button class="fs-button-primary" id="btn-login">Log in to start</button>
+    </div>
+
     <!-- Not set up yet -->
     <div id="setup-prompt" class="fs-hidden">
       <p class="fs-setup-msg">Your PC doesn't have a bedtime. Now it does.</p>
@@ -23,8 +29,8 @@
     <!-- Trial expired -->
     <div id="trial-expired" class="fs-hidden">
       <div class="fs-trial-expired-card">
-        <p class="fs-trial-expired-headline">Your 24-hour trial has ended</p>
-        <p class="fs-trial-expired-body">You protected your sleep for a night. Want to keep going?</p>
+        <p class="fs-trial-expired-headline">Trial ended</p>
+        <p class="fs-trial-expired-body">Want to keep protecting your sleep?</p>
         <div class="fs-trial-stats">
           <div class="fs-trial-stat">
             <span class="fs-trial-stat-value" id="trial-nights">0</span>
@@ -35,12 +41,15 @@
             <span class="fs-trial-stat-label">sites blocked</span>
           </div>
         </div>
-        <a class="fs-button-primary" id="btn-upgrade" href="https://futureself.joinhustleclub.com/#pricing" target="_blank">Get lifetime access — $19</a>
+        <a class="fs-button-primary" id="btn-upgrade" href="https://futureself.joinhustleclub.com/#pricing" target="_blank">Upgrade — $19</a>
       </div>
     </div>
 
     <!-- Main dashboard -->
     <div id="dashboard" class="fs-hidden">
+      <!-- Paid badge -->
+      <div class="fs-paid-badge fs-hidden" id="paid-badge">Lifetime Access</div>
+
       <div class="fs-status-badge" id="status-badge">
         <span class="fs-status-dot" id="status-dot"></span>
         <span class="fs-status-text" id="status-text"></span>
@@ -68,8 +77,10 @@
       </div>
 
       <a class="fs-settings-link" id="settings-link">Settings</a>
+      <a class="fs-logout-link" id="logout-link">Log out</a>
     </div>
   </div>
+  <script src="supabase-client.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

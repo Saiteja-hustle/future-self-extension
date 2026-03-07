@@ -275,3 +275,33 @@ body {
 .fs-settings-link:hover {
   text-decoration: underline;
 }
+
+/* Logout link */
+.fs-logout-link {
+  display: block;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-decoration: none;
+  cursor: pointer;
+  margin-top: 0.6rem;
+}
+
+.fs-logout-link:hover {
+  color: var(--accent-red-soft);
+  text-decoration: underline;
+}
+
+/* Paid badge */
+.fs-paid-badge {
+  display: inline-block;
+  background: var(--accent-green-glow);
+  color: var(--accent-green);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}

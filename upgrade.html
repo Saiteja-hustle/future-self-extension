@@ -99,24 +99,95 @@
       text-transform: uppercase;
       margin-top: 2rem;
     }
+
+    .fs-upgrade-stats {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    .fs-upgrade-stat {
+      text-align: center;
+    }
+
+    .fs-upgrade-stat-value {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: var(--accent-green);
+    }
+
+    .fs-upgrade-stat-label {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .fs-upgrade-logout {
+      display: block;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      text-decoration: none;
+      cursor: pointer;
+      margin-top: 1.5rem;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+
+    .fs-upgrade-logout:hover {
+      color: var(--accent-blue);
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <div class="fs-upgrade">
-    <h1 class="fs-upgrade-title">Your trial has ended</h1>
+    <h1 class="fs-upgrade-title">Your free trial has ended</h1>
     <p class="fs-upgrade-site" id="site-label"></p>
-    <p class="fs-upgrade-body">You protected your sleep for a night. Want to keep going?</p>
+    <p class="fs-upgrade-body">You used FutureSelf for 24 hours. Want to keep going?</p>
+
+    <div class="fs-upgrade-stats">
+      <div class="fs-upgrade-stat">
+        <span class="fs-upgrade-stat-value" id="stat-streak">0</span>
+        <span class="fs-upgrade-stat-label">nights protected</span>
+      </div>
+      <div class="fs-upgrade-stat">
+        <span class="fs-upgrade-stat-value" id="stat-blocked">0</span>
+        <span class="fs-upgrade-stat-label">sites blocked</span>
+      </div>
+    </div>
+
     <p class="fs-upgrade-sub">Future Self blocks distracting sites during your sleep window so tomorrow-you shows up fully. One payment, lifetime access.</p>
-    <a class="fs-upgrade-cta" href="https://futureself.joinhustleclub.com/#pricing" target="_blank">Get lifetime access — $19</a>
+    <a class="fs-upgrade-cta" href="https://futureself.joinhustleclub.com/#pricing" target="_blank">Get Lifetime Access — $19</a>
     <p class="fs-upgrade-tagline">Tomorrow will thank you.</p>
+    <button class="fs-upgrade-logout" id="btn-logout">Log out</button>
   </div>
 
+  <script src="supabase-client.js"></script>
   <script>
     var params = new URLSearchParams(window.location.search);
     var site = params.get("site") || "";
     if (site) {
       document.getElementById("site-label").textContent = "You tried to open " + site;
     }
+
+    // Load usage stats
+    chrome.storage.local.get(["futureself_streak", "futureself_blockedTonight"], function (data) {
+      document.getElementById("stat-streak").textContent = data.futureself_streak || 0;
+      document.getElementById("stat-blocked").textContent = data.futureself_blockedTonight || 0;
+    });
+
+    // Logout
+    document.getElementById("btn-logout").addEventListener("click", async function () {
+      await SupabaseAuth.signOut();
+      window.location.href = chrome.runtime.getURL("login.html");
+    });
   </script>
 </body>
 </html>

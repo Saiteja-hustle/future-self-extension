@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Future Self — Sign In</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --night-black: #0B0E14;
+      --night-charcoal: #151923;
+      --night-graphite: #1E2433;
+      --night-slate: #2A3040;
+      --text-primary: #E8ECF4;
+      --text-secondary: #8B95A8;
+      --text-muted: #525E73;
+      --accent-green: #4ADE80;
+      --accent-green-glow: rgba(74, 222, 128, 0.15);
+      --accent-amber: #FBBF24;
+      --accent-blue: #60A5FA;
+      --accent-red-soft: #F87171;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--night-black);
+      color: var(--text-primary);
+      font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .fs-login {
+      max-width: 420px;
+      width: 100%;
+    }
+
+    .fs-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .fs-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    .fs-tagline {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* Tabs */
+    .fs-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 2rem;
+      background: var(--night-charcoal);
+      border-radius: 12px;
+      padding: 4px;
+    }
+
+    .fs-tab {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 0.7rem 1rem;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .fs-tab.fs-active {
+      background: var(--night-graphite);
+      color: var(--text-primary);
+    }
+
+    .fs-tab:hover:not(.fs-active) {
+      color: var(--text-secondary);
+    }
+
+    /* Form */
+    .fs-form {
+      display: none;
+    }
+
+    .fs-form.fs-active {
+      display: block;
+    }
+
+    .fs-field {
+      margin-bottom: 1.25rem;
+    }
+
+    .fs-label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+      font-weight: 500;
+    }
+
+    .fs-input {
+      background: var(--night-graphite);
+      color: var(--text-primary);
+      border: 1px solid var(--night-slate);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-size: 15px;
+      font-family: inherit;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+
+    .fs-input:focus {
+      outline: none;
+      border-color: var(--accent-green);
+    }
+
+    .fs-btn-primary {
+      display: block;
+      width: 100%;
+      background: var(--accent-green);
+      color: var(--night-black);
+      border: none;
+      border-radius: 12px;
+      padding: 0.9rem 2rem;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: center;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-top: 0.5rem;
+    }
+
+    .fs-btn-primary:hover { opacity: 0.9; }
+    .fs-btn-primary:active { transform: scale(0.98); }
+    .fs-btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .fs-btn-login {
+      background: var(--accent-blue);
+    }
+
+    .fs-small-text {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 0.75rem;
+    }
+
+    .fs-error {
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      border-radius: 10px;
+      padding: 0.6rem 1rem;
+      font-size: 13px;
+      color: var(--accent-red-soft);
+      margin-bottom: 1rem;
+      display: none;
+      line-height: 1.4;
+    }
+
+    .fs-error.fs-visible {
+      display: block;
+    }
+
+    .fs-success {
+      background: var(--accent-green-glow);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      border-radius: 10px;
+      padding: 0.6rem 1rem;
+      font-size: 13px;
+      color: var(--accent-green);
+      margin-bottom: 1rem;
+      display: none;
+      line-height: 1.4;
+    }
+
+    .fs-success.fs-visible {
+      display: block;
+    }
+
+    .fs-footer {
+      text-align: center;
+      margin-top: 2.5rem;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="fs-login">
+    <div class="fs-header">
+      <h1 class="fs-title">Future Self</h1>
+      <p class="fs-tagline">Your PC doesn't have a bedtime. Now it does.</p>
+    </div>
+
+    <div class="fs-tabs">
+      <button class="fs-tab fs-active" id="tab-signup">Start Free Trial</button>
+      <button class="fs-tab" id="tab-login">Log In</button>
+    </div>
+
+    <!-- Sign Up Form -->
+    <div class="fs-form fs-active" id="form-signup">
+      <div class="fs-error" id="signup-error"></div>
+      <div class="fs-success" id="signup-success"></div>
+      <div class="fs-field">
+        <label class="fs-label" for="signup-email">Email</label>
+        <input type="email" class="fs-input" id="signup-email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="fs-field">
+        <label class="fs-label" for="signup-password">Password</label>
+        <input type="password" class="fs-input" id="signup-password" placeholder="Min 6 characters" autocomplete="new-password">
+      </div>
+      <button class="fs-btn-primary" id="btn-signup">Start Free Trial — 24 Hours Free</button>
+      <p class="fs-small-text">No credit card required</p>
+    </div>
+
+    <!-- Log In Form -->
+    <div class="fs-form" id="form-login">
+      <div class="fs-error" id="login-error"></div>
+      <div class="fs-field">
+        <label class="fs-label" for="login-email">Email</label>
+        <input type="email" class="fs-input" id="login-email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="fs-field">
+        <label class="fs-label" for="login-password">Password</label>
+        <input type="password" class="fs-input" id="login-password" placeholder="Your password" autocomplete="current-password">
+      </div>
+      <button class="fs-btn-primary fs-btn-login" id="btn-login">Log In</button>
+    </div>
+
+    <p class="fs-footer">Tomorrow will thank you.</p>
+  </div>
+
+  <script src="supabase-client.js"></script>
+  <script src="login.js"></script>
+</body>
+</html>
