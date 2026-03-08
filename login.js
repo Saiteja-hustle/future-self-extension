@@ -148,6 +148,112 @@
     if (e.key === "Enter") document.getElementById("btn-forgot").click();
   });
 
+  // Google Sign-In
+  document.getElementById("btn-google-signup").addEventListener("click", signInWithGoogle);
+  document.getElementById("btn-google-login").addEventListener("click", signInWithGoogle);
+
+  async function signInWithGoogle() {
+    var redirectUrl = chrome.identity.getRedirectURL();
+    var authUrl = SUPABASE_URL + "/auth/v1/authorize"
+      + "?provider=google"
+      + "&redirect_to=" + encodeURIComponent(redirectUrl);
+
+    // Show loading state on whichever form is active
+    var signupError = document.getElementById("signup-error");
+    var loginError = document.getElementById("login-error");
+    signupError.classList.remove("fs-visible");
+    loginError.classList.remove("fs-visible");
+
+    try {
+      var callbackUrl = await new Promise(function (resolve, reject) {
+        chrome.identity.launchWebAuthFlow(
+          { url: authUrl, interactive: true },
+          function (responseUrl) {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message));
+            } else if (!responseUrl) {
+              reject(new Error("No response from Google sign-in."));
+            } else {
+              resolve(responseUrl);
+            }
+          }
+        );
+      });
+
+      // Parse tokens from the callback URL fragment
+      var hashFragment = callbackUrl.split("#")[1];
+      if (!hashFragment) {
+        throw new Error("No authentication data received.");
+      }
+
+      var params = new URLSearchParams(hashFragment);
+      var accessToken = params.get("access_token");
+      var refreshToken = params.get("refresh_token");
+      var expiresIn = params.get("expires_in");
+
+      if (!accessToken) {
+        throw new Error("No access token received from Google sign-in.");
+      }
+
+      // Store tokens in chrome.storage.local
+      var toStore = {
+        futureself_access_token: accessToken
+      };
+      if (refreshToken) {
+        toStore.futureself_refresh_token = refreshToken;
+      }
+      if (expiresIn) {
+        toStore.futureself_token_expires_at = Date.now() + (parseInt(expiresIn, 10) * 1000);
+      }
+
+      // Fetch user info from Supabase
+      var userRes = await fetch(SUPABASE_URL + "/auth/v1/user", {
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": "Bearer " + accessToken
+        }
+      });
+      var userData = await userRes.json();
+      if (!userRes.ok) {
+        throw new Error(userData.message || "Failed to fetch user info.");
+      }
+
+      if (userData.email) {
+        toStore.futureself_user_email = userData.email;
+      }
+
+      await chrome.storage.local.set(toStore);
+
+      // Create/update profile in Supabase profiles table
+      var trialExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      await fetch(SUPABASE_URL + "/rest/v1/profiles", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": "Bearer " + accessToken,
+          "Prefer": "resolution=merge-duplicates"
+        },
+        body: JSON.stringify({
+          id: userData.id,
+          trial_expires_at: trialExpiresAt,
+          is_paid: false
+        })
+      });
+
+      // Redirect to options page on success
+      window.location.href = chrome.runtime.getURL("options.html");
+
+    } catch (e) {
+      // Show error on whichever form tab is currently active
+      var activeForm = document.querySelector(".fs-form.fs-active");
+      var errorEl = activeForm
+        ? activeForm.querySelector(".fs-error")
+        : loginError;
+      showError(errorEl, e.message || "Google sign-in failed.");
+    }
+  }
+
   function showError(el, msg) {
     el.textContent = msg;
     el.classList.add("fs-visible");
