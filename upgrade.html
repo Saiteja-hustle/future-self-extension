@@ -34,54 +34,130 @@
     }
 
     .fs-upgrade {
-      max-width: 480px;
+      max-width: 680px;
       width: 100%;
       text-align: center;
     }
 
     .fs-upgrade-title {
       font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-      font-size: 28px;
+      font-size: 36px;
       font-weight: 700;
       color: var(--text-primary);
       letter-spacing: -0.02em;
       line-height: 1.2;
-      margin-bottom: 0.75rem;
-    }
-
-    .fs-upgrade-site {
-      font-family: "JetBrains Mono", monospace;
-      font-size: 13px;
-      color: var(--accent-amber);
-      margin-bottom: 2rem;
-    }
-
-    .fs-upgrade-body {
-      font-size: 17px;
-      color: var(--text-secondary);
-      line-height: 1.6;
       margin-bottom: 1rem;
     }
 
-    .fs-upgrade-sub {
-      font-size: 15px;
+    .fs-upgrade-subtext {
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin: 0 auto 2.25rem;
+      max-width: 520px;
+    }
+
+    .fs-pricing-card {
+      position: relative;
+      max-width: 540px;
+      margin: 0 auto;
+      text-align: left;
+      background: linear-gradient(160deg, rgba(30, 36, 51, 0.94), rgba(21, 25, 35, 0.94));
+      border: 1px solid rgba(96, 165, 250, 0.25);
+      border-radius: 20px;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+      padding: 2.25rem 2rem;
+    }
+
+    .fs-early-badge {
+      display: inline-block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #0f172a;
+      background: linear-gradient(135deg, var(--accent-amber), #fde68a);
+      padding: 0.4rem 0.75rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+      transform: rotate(-3deg);
+      box-shadow: 0 6px 16px rgba(251, 191, 36, 0.28);
+    }
+
+    .fs-price-line {
+      margin-bottom: 0.85rem;
+    }
+
+    .fs-price-old {
       color: var(--text-muted);
-      line-height: 1.5;
-      margin-bottom: 2.5rem;
+      text-decoration: line-through;
+      font-size: 1.1rem;
+      margin-right: 0.45rem;
+    }
+
+    .fs-price-current {
+      font-size: 2.55rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+    }
+
+    .fs-price-period {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-left: 0.25rem;
+    }
+
+    .fs-price-meta {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .fs-price-desc {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      margin-bottom: 1.25rem;
+    }
+
+    .fs-feature-list {
+      list-style: none;
+      margin-bottom: 1.5rem;
+    }
+
+    .fs-feature-item {
+      font-size: 14px;
+      color: var(--text-primary);
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.55rem;
+    }
+
+    .fs-feature-check {
+      color: var(--accent-green);
+      font-weight: 700;
+      margin-top: 0.08rem;
     }
 
     .fs-upgrade-cta {
       display: block;
       width: 100%;
-      max-width: 340px;
-      margin: 0 auto 1rem;
+      margin: 0 0 0.65rem;
       background: var(--accent-green);
       color: var(--night-black);
       border: none;
       border-radius: 12px;
-      padding: 1rem 2rem;
-      font-size: 17px;
-      font-weight: 600;
+      padding: 0.95rem 1.5rem;
+      font-size: 16px;
+      font-weight: 700;
       font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
       cursor: pointer;
       text-align: center;
@@ -92,18 +168,32 @@
     .fs-upgrade-cta:hover { opacity: 0.9; }
     .fs-upgrade-cta:active { transform: scale(0.98); }
 
-    .fs-upgrade-tagline {
-      font-size: 11px;
+    .fs-upgrade-note {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 0.55rem;
+    }
+
+    .fs-upgrade-guarantee {
+      font-size: 12px;
       color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 0.8rem;
+    }
+
+    .fs-upgrade-microcopy {
+      font-size: 11px;
+      color: var(--accent-amber);
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      margin-top: 2rem;
+      font-family: "JetBrains Mono", monospace;
     }
 
     .fs-upgrade-stats {
       display: flex;
       gap: 2rem;
       justify-content: center;
+      margin-top: 2rem;
       margin-bottom: 2rem;
     }
 
@@ -144,13 +234,63 @@
       color: var(--accent-blue);
       text-decoration: underline;
     }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+
+      .fs-upgrade-title {
+        font-size: 30px;
+      }
+
+      .fs-pricing-card {
+        padding: 1.6rem 1.25rem;
+      }
+
+      .fs-price-current {
+        font-size: 2.2rem;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="fs-upgrade">
-    <h1 class="fs-upgrade-title">Your free trial has ended</h1>
-    <p class="fs-upgrade-site" id="site-label"></p>
-    <p class="fs-upgrade-body">You used FutureSelf for 24 hours. Want to keep going?</p>
+    <h1 class="fs-upgrade-title">Simple pricing that protects your future self.</h1>
+    <p class="fs-upgrade-subtext">You can try FutureSelf during the beta.<br>Pay once, use it forever.<br>If you're not satisfied, we offer a 30-day money-back guarantee.</p>
+
+    <div class="fs-pricing-card">
+      <div class="fs-early-badge">Early Adopter Discount</div>
+
+      <div class="fs-price-line">
+        <span class="fs-price-old">$37</span>
+        <span class="fs-price-current">$19</span>
+        <span class="fs-price-period">/ lifetime</span>
+      </div>
+
+      <div class="fs-price-meta">
+        <span>Early Adopter Price: $19</span>
+        <span>Future Price: $49</span>
+      </div>
+
+      <p class="fs-price-desc">Get beta lifetime access to FutureSelf at early adopter pricing. The price increases after public launch.</p>
+
+      <ul class="fs-feature-list">
+        <li class="fs-feature-item"><span class="fs-feature-check">✓</span><span>Beta access starting immediately</span></li>
+        <li class="fs-feature-item"><span class="fs-feature-check">✓</span><span>Lifetime access (pay once, use forever)</span></li>
+        <li class="fs-feature-item"><span class="fs-feature-check">✓</span><span>Full block list with work + AI tools</span></li>
+        <li class="fs-feature-item"><span class="fs-feature-check">✓</span><span>Reflective intercept questions</span></li>
+        <li class="fs-feature-item"><span class="fs-feature-check">✓</span><span>Smart wake-time calculation</span></li>
+        <li class="fs-feature-item"><span class="fs-feature-check">✓</span><span>Flexible override</span></li>
+        <li class="fs-feature-item"><span class="fs-feature-check">✓</span><span>All future updates included</span></li>
+        <li class="fs-feature-item"><span class="fs-feature-check">✓</span><span>Priority access to new features (Focus Sessions, Pomodoro, App Blocker)</span></li>
+      </ul>
+
+      <a class="fs-upgrade-cta" href="https://futureself.joinhustleclub.com/#pricing" target="_blank">Get Beta Access &ndash; $19</a>
+      <p class="fs-upgrade-note">One-time payment. No subscription.</p>
+      <p class="fs-upgrade-guarantee">Try FutureSelf risk-free with our 30-day money-back guarantee.</p>
+      <p class="fs-upgrade-microcopy">Early adopters get the best price &mdash; forever.</p>
+    </div>
 
     <div class="fs-upgrade-stats">
       <div class="fs-upgrade-stat">
@@ -163,20 +303,11 @@
       </div>
     </div>
 
-    <p class="fs-upgrade-sub">Future Self blocks distracting sites during your sleep window so tomorrow-you shows up fully. One payment, lifetime access.</p>
-    <a class="fs-upgrade-cta" href="https://futureself.joinhustleclub.com/#pricing" target="_blank">Get Lifetime Access — $19</a>
-    <p class="fs-upgrade-tagline">Tomorrow will thank you.</p>
     <button class="fs-upgrade-logout" id="btn-logout">Log out</button>
   </div>
 
   <script src="supabase-client.js"></script>
   <script>
-    var params = new URLSearchParams(window.location.search);
-    var site = params.get("site") || "";
-    if (site) {
-      document.getElementById("site-label").textContent = "You tried to open " + site;
-    }
-
     // Load usage stats
     chrome.storage.local.get(["futureself_streak", "futureself_blockedTonight"], function (data) {
       document.getElementById("stat-streak").textContent = data.futureself_streak || 0;
