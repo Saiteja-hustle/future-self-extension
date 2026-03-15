@@ -148,64 +148,6 @@
     if (e.key === "Enter") document.getElementById("btn-forgot").click();
   });
 
-  // Google Sign-In
-  document.getElementById("btn-google-signup").addEventListener("click", signInWithGoogle);
-  document.getElementById("btn-google-login").addEventListener("click", signInWithGoogle);
-
-  async function signInWithGoogle() {
-    var signupError = document.getElementById("signup-error");
-    var loginError = document.getElementById("login-error");
-    signupError.classList.remove("fs-visible");
-    loginError.classList.remove("fs-visible");
-
-    var authTabId = null;
-
-    try {
-      // Open external Google login page
-      var tab = await chrome.tabs.create({ url: "https://futureself.joinhustleclub.com/auth/google-login?source=extension" });
-      authTabId = tab.id;
-
-      // Watch for the extension-callback URL and read tokens from the URL hash
-      var tokens = await new Promise(function (resolve, reject) {
-        function onUpdated(tabId, changeInfo, tabInfo) {
-          if (tabId !== authTabId) return;
-          if (changeInfo.status !== "complete") return;
-          if (!tabInfo.url || !tabInfo.url.includes("/auth/extension-callback")) return;
-
-          chrome.tabs.onUpdated.removeListener(onUpdated);
-
-          var params = new URLSearchParams(tabInfo.url.split("#")[1]);
-          var access_token = params.get("access_token");
-          var refresh_token = params.get("refresh_token");
-
-          if (access_token && refresh_token) {
-            resolve({ access_token: access_token, refresh_token: refresh_token });
-          } else {
-            reject(new Error("Google sign-in failed. Please try again."));
-          }
-        }
-
-        chrome.tabs.onUpdated.addListener(onUpdated);
-      });
-
-      await SupabaseAuth._storeTokens(tokens);
-
-      // Close the auth tab and show the dashboard
-      await chrome.tabs.remove(authTabId);
-      window.location.href = chrome.runtime.getURL("options.html");
-
-    } catch (e) {
-      if (authTabId !== null) {
-        chrome.tabs.remove(authTabId).catch(function () {});
-      }
-      var activeForm = document.querySelector(".fs-form.fs-active");
-      var errorEl = activeForm
-        ? activeForm.querySelector(".fs-error")
-        : loginError;
-      showError(errorEl, e.message || "Google sign-in failed.");
-    }
-  }
-
   function showError(el, msg) {
     el.textContent = msg;
     el.classList.add("fs-visible");
