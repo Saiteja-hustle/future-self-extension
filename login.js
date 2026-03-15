@@ -174,26 +174,54 @@
 
           chrome.tabs.onUpdated.removeListener(onUpdated);
 
-          chrome.scripting.executeScript(
-            {
-              target: { tabId: authTabId },
-              func: function () {
-                return {
-                  access_token: localStorage.getItem("futureself_access_token"),
-                  refresh_token: localStorage.getItem("futureself_refresh_token")
-                };
+          function readTokensFromPage(callback) {
+            chrome.scripting.executeScript(
+              {
+                target: { tabId: authTabId },
+                func: function () {
+                  return {
+                    access_token: localStorage.getItem("futureself_access_token"),
+                    refresh_token: localStorage.getItem("futureself_refresh_token")
+                  };
+                }
+              },
+              function (results) {
+                if (chrome.runtime.lastError) {
+                  callback(new Error(chrome.runtime.lastError.message), null);
+                } else if (!results || !results[0] || !results[0].result) {
+                  callback(new Error("Could not read tokens from callback page."), null);
+                } else {
+                  callback(null, results[0].result);
+                }
               }
-            },
-            function (results) {
-              if (chrome.runtime.lastError) {
-                reject(new Error(chrome.runtime.lastError.message));
-              } else if (!results || !results[0] || !results[0].result) {
-                reject(new Error("Could not read tokens from callback page."));
+            );
+          }
+
+          setTimeout(function () {
+            readTokensFromPage(function (err, result) {
+              if (err) {
+                reject(err);
+                return;
+              }
+              if (result.access_token && result.refresh_token) {
+                resolve(result);
               } else {
-                resolve(results[0].result);
+                setTimeout(function () {
+                  readTokensFromPage(function (err2, result2) {
+                    if (err2) {
+                      reject(err2);
+                      return;
+                    }
+                    if (result2.access_token && result2.refresh_token) {
+                      resolve(result2);
+                    } else {
+                      reject(new Error("Google sign-in failed. Please try again or use email/password."));
+                    }
+                  });
+                }, 1500);
               }
-            }
-          );
+            });
+          }, 2000);
         }
 
         chrome.tabs.onUpdated.addListener(onUpdated);
