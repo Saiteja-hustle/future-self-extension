@@ -1,8 +1,11 @@
 // Future Self — Popup Dashboard
 
 (async function () {
-  // Check auth status from Supabase
+  // Step 1: Check trial status and is_paid from Supabase (single profile fetch)
   var authStatus = await SupabaseAuth.checkAuthStatus();
+  // authStatus.isPaid  — true if profile.is_paid === true in Supabase
+  // authStatus.isTrialActive — true if trial window hasn't elapsed
+  // authStatus.trialHoursLeft — hours left in trial
 
   var config = await chrome.storage.local.get([
     "futureself_setupComplete", "futureself_wakeTime", "futureself_blockStartTime",
@@ -27,18 +30,21 @@
     return;
   }
 
-  // Trial expired and not paid
-  if (!authStatus.isTrialActive && !authStatus.isPaid) {
+  // Step 2: Apply paid / trial gate
+  // is_paid = true  → show dashboard (ignore trial entirely)
+  // is_paid = false AND trial expired → show upgrade screen
+  // is_paid = false AND trial active  → show dashboard with trial countdown
+  if (!authStatus.isPaid && !authStatus.isTrialActive) {
     document.getElementById("trial-expired").classList.remove("fs-hidden");
     document.getElementById("trial-nights").textContent = config.futureself_streak || 0;
     document.getElementById("trial-blocks").textContent = config.futureself_blockedTonight || 0;
     return;
   }
 
-  // Show dashboard
+  // Show dashboard (paid users or active-trial users reach here)
   document.getElementById("dashboard").classList.remove("fs-hidden");
 
-  // Show paid badge if lifetime
+  // Show paid badge if lifetime access
   if (authStatus.isPaid) {
     document.getElementById("paid-badge").classList.remove("fs-hidden");
   }
@@ -91,7 +97,7 @@
   // Trial banner (only show for non-paid trial users)
   if (!authStatus.isPaid && authStatus.isTrialActive) {
     document.getElementById("trial-banner").classList.remove("fs-hidden");
-    document.getElementById("trial-text").textContent = "Free trial: " + authStatus.trialHoursLeft + " hours remaining";
+    document.getElementById("trial-text").textContent = authStatus.trialHoursLeft + " hours remaining in trial";
   }
 
   // Settings link
