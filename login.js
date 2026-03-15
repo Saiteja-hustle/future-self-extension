@@ -162,117 +162,33 @@
 
     try {
       // Open external Google login page
-      var tab = await chrome.tabs.create({ url: "https://futureself.joinhustleclub.com/auth/google-login" });
+      var tab = await chrome.tabs.create({ url: "https://futureself.joinhustleclub.com/auth/google-login?source=extension" });
       authTabId = tab.id;
 
-      // Watch for the callback URL, then inject a script to read tokens from localStorage
+      // Watch for the extension-callback URL and read tokens from the URL hash
       var tokens = await new Promise(function (resolve, reject) {
         function onUpdated(tabId, changeInfo, tabInfo) {
           if (tabId !== authTabId) return;
           if (changeInfo.status !== "complete") return;
-          if (!tabInfo.url || !tabInfo.url.includes("futureself.joinhustleclub.com/auth/callback")) return;
+          if (!tabInfo.url || !tabInfo.url.includes("/auth/extension-callback")) return;
 
           chrome.tabs.onUpdated.removeListener(onUpdated);
 
-          function readTokensFromPage(callback) {
-            chrome.scripting.executeScript(
-              {
-                target: { tabId: authTabId },
-                func: function () {
-                  return {
-                    access_token: localStorage.getItem("futureself_access_token"),
-                    refresh_token: localStorage.getItem("futureself_refresh_token")
-                  };
-                }
-              },
-              function (results) {
-                if (chrome.runtime.lastError) {
-                  callback(new Error(chrome.runtime.lastError.message), null);
-                } else if (!results || !results[0] || !results[0].result) {
-                  callback(new Error("Could not read tokens from callback page."), null);
-                } else {
-                  callback(null, results[0].result);
-                }
-              }
-            );
-          }
+          var params = new URLSearchParams(tabInfo.url.split("#")[1]);
+          var access_token = params.get("access_token");
+          var refresh_token = params.get("refresh_token");
 
-          setTimeout(function () {
-            readTokensFromPage(function (err, result) {
-              if (err) {
-                reject(err);
-                return;
-              }
-              if (result.access_token && result.refresh_token) {
-                resolve(result);
-              } else {
-                setTimeout(function () {
-                  readTokensFromPage(function (err2, result2) {
-                    if (err2) {
-                      reject(err2);
-                      return;
-                    }
-                    if (result2.access_token && result2.refresh_token) {
-                      resolve(result2);
-                    } else {
-                      reject(new Error("Google sign-in failed. Please try again or use email/password."));
-                    }
-                  });
-                }, 1500);
-              }
-            });
-          }, 2000);
+          if (access_token && refresh_token) {
+            resolve({ access_token: access_token, refresh_token: refresh_token });
+          } else {
+            reject(new Error("Google sign-in failed. Please try again."));
+          }
         }
 
         chrome.tabs.onUpdated.addListener(onUpdated);
       });
 
-      if (!tokens.access_token) {
-        throw new Error("No access token received from Google sign-in.");
-      }
-
-      // Store tokens in chrome.storage.local (sets the session in the extension)
-      var toStore = {
-        futureself_access_token: tokens.access_token
-      };
-      if (tokens.refresh_token) {
-        toStore.futureself_refresh_token = tokens.refresh_token;
-      }
-
-      // Fetch user info from Supabase
-      var userRes = await fetch(SUPABASE_URL + "/auth/v1/user", {
-        headers: {
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": "Bearer " + tokens.access_token
-        }
-      });
-      var userData = await userRes.json();
-      if (!userRes.ok) {
-        throw new Error(userData.message || "Failed to fetch user info.");
-      }
-
-      if (userData.email) {
-        toStore.futureself_user_email = userData.email;
-      }
-
-      await chrome.storage.local.set(toStore);
-
-      // Create/update profile in Supabase profiles table
-      var trialExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      await fetch(SUPABASE_URL + "/rest/v1/profiles", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": "Bearer " + tokens.access_token,
-          "Prefer": "resolution=merge-duplicates"
-        },
-        body: JSON.stringify({
-          id: userData.id,
-          trial_expires_at: trialExpiresAt,
-          is_paid: false
-        })
-      });
+      await SupabaseAuth._storeTokens(tokens);
 
       // Close the auth tab and show the dashboard
       await chrome.tabs.remove(authTabId);
