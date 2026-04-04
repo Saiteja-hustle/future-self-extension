@@ -51,14 +51,24 @@
         // Signed up and logged in immediately
         window.location.href = chrome.runtime.getURL("options.html");
       } else {
-        // Email confirmation required
-        successEl.textContent = "Check your email to confirm your account, then log in.";
-        successEl.classList.add("fs-visible");
+        // Check if Supabase silently indicated a duplicate email (200 OK but no token)
+        var silentErrMsg = data.error_description || data.msg || data.message || "";
+        if (silentErrMsg && (silentErrMsg.includes("already registered") || silentErrMsg.includes("User already registered"))) {
+          switchToLoginWithError("An account with this email already exists. Please log in instead.");
+        } else {
+          // Email confirmation required
+          successEl.textContent = "Check your email to confirm your account, then log in.";
+          successEl.classList.add("fs-visible");
+        }
         btn.textContent = "Start Free Trial — 24 Hours Free";
         btn.disabled = false;
       }
     } catch (e) {
-      showError(errorEl, e.message);
+      if (e.message && (e.message.includes("already registered") || e.message.includes("User already registered"))) {
+        switchToLoginWithError("An account with this email already exists. Please log in instead.");
+      } else {
+        showError(errorEl, e.message);
+      }
       btn.textContent = "Start Free Trial — 24 Hours Free";
       btn.disabled = false;
     }
@@ -147,6 +157,14 @@
   document.getElementById("forgot-email").addEventListener("keydown", function (e) {
     if (e.key === "Enter") document.getElementById("btn-forgot").click();
   });
+
+  function switchToLoginWithError(msg) {
+    tabLogin.classList.add("fs-active");
+    tabSignup.classList.remove("fs-active");
+    formLogin.classList.add("fs-active");
+    formSignup.classList.remove("fs-active");
+    showError(document.getElementById("login-error"), msg);
+  }
 
   function showError(el, msg) {
     el.textContent = msg;
