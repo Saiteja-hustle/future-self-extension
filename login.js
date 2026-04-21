@@ -1,6 +1,13 @@
 // Future Self — Login Page Logic
 
 (function () {
+  // If a Supabase session already exists, skip login and go to options
+  chrome.storage.local.get("supabase_session", function (data) {
+    if (data && data.supabase_session) {
+      window.location.href = chrome.runtime.getURL("options.html");
+    }
+  });
+
   var tabSignup = document.getElementById("tab-signup");
   var tabLogin = document.getElementById("tab-login");
   var formSignup = document.getElementById("form-signup");

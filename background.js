@@ -244,3 +244,12 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 
   return true; // keep message channel open for async sendResponse
 });
+
+chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+  if (message.type === 'SUPABASE_SESSION') {
+    chrome.storage.local.set({ supabase_session: message.session }, () => {
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+});
