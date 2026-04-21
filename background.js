@@ -217,3 +217,30 @@ chrome.runtime.onInstalled.addListener(function (details) {
     chrome.tabs.create({ url: chrome.runtime.getURL("login.html") });
   }
 });
+
+// Receive auth tokens from futureself.joinhustleclub.com web app
+chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResponse) {
+  if (!message || message.type !== "FUTURESELF_AUTH_TOKENS") return;
+
+  var toStore = {};
+  if (message.access_token) {
+    toStore.futureself_access_token = message.access_token;
+  }
+  if (message.refresh_token) {
+    toStore.futureself_refresh_token = message.refresh_token;
+  }
+  if (message.expires_in) {
+    toStore.futureself_token_expires_at = Date.now() + (message.expires_in * 1000);
+  }
+  if (message.user && message.user.email) {
+    toStore.futureself_user_email = message.user.email;
+  }
+
+  chrome.storage.local.set(toStore).then(function () {
+    sendResponse({ ok: true });
+  }).catch(function (err) {
+    sendResponse({ ok: false, error: err && err.message });
+  });
+
+  return true; // keep message channel open for async sendResponse
+});
