@@ -7,9 +7,7 @@
   "permissions": [
     "storage",
     "webNavigation",
-    "alarms",
-    "identity",
-    "tabs"
+    "alarms"
   ],
   "host_permissions": [
     "<all_urls>",
