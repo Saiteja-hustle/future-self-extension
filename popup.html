@@ -8,6 +8,12 @@
 </head>
 <body>
   <div class="fs-popup">
+    <div class="fs-mode-toggle">
+      <button class="fs-mode-btn" id="btn-mode-night">🌙 Night</button>
+      <button class="fs-mode-btn" id="btn-mode-day">☀️ Day</button>
+    </div>
+
+    <div id="night-panel">
     <div class="fs-header">
       <div class="fs-header-row">
         <h1 class="fs-title">Future Self</h1>
@@ -78,6 +84,11 @@
 
       <a class="fs-settings-link" id="settings-link">Settings</a>
       <a class="fs-logout-link" id="logout-link">Log out</a>
+    </div>
+    </div><!-- /#night-panel -->
+
+    <div id="day-panel" class="fs-hidden">
+      <p class="fs-setup-msg">Day Mode — coming soon</p>
     </div>
   </div>
   <script src="supabase-client.js"></script>

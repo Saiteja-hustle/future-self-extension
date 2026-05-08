@@ -1,6 +1,39 @@
 // Future Self — Popup Dashboard
 
 (async function () {
+  // Mode toggle
+  var activeTab = (await chrome.storage.local.get("futureself_active_tab")).futureself_active_tab || "night";
+  var btnNight = document.getElementById("btn-mode-night");
+  var btnDay = document.getElementById("btn-mode-day");
+  var nightPanel = document.getElementById("night-panel");
+  var dayPanel = document.getElementById("day-panel");
+
+  function applyMode(mode) {
+    if (mode === "day") {
+      btnNight.className = "fs-mode-btn";
+      btnDay.className = "fs-mode-btn active-day";
+      nightPanel.classList.add("fs-hidden");
+      dayPanel.classList.remove("fs-hidden");
+    } else {
+      btnNight.className = "fs-mode-btn active-night";
+      btnDay.className = "fs-mode-btn";
+      nightPanel.classList.remove("fs-hidden");
+      dayPanel.classList.add("fs-hidden");
+    }
+  }
+
+  applyMode(activeTab);
+
+  btnNight.addEventListener("click", async function () {
+    await chrome.storage.local.set({ futureself_active_tab: "night" });
+    applyMode("night");
+  });
+
+  btnDay.addEventListener("click", async function () {
+    await chrome.storage.local.set({ futureself_active_tab: "day" });
+    applyMode("day");
+  });
+
   // Step 1: Check trial status and is_paid from Supabase (single profile fetch)
   var authStatus = await SupabaseAuth.checkAuthStatus();
   // authStatus.isPaid  — true if profile.is_paid === true in Supabase

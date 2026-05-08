@@ -352,6 +352,45 @@ body {
   text-decoration: underline;
 }
 
+/* ---- Mode toggle ---- */
+
+.fs-mode-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.fs-mode-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text);
+  opacity: 0.35;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.fs-mode-btn.active-night {
+  background: #4ADE80;
+  color: #0B0E14;
+  opacity: 1;
+}
+
+.fs-mode-btn.active-day {
+  background: #FBBF24;
+  color: #0B0E14;
+  opacity: 1;
+}
+
 /* ---- Paid badge ---- */
 
 .fs-paid-badge {
