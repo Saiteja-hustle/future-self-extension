@@ -216,6 +216,39 @@ chrome.runtime.onInstalled.addListener(function (details) {
   if (details.reason === "install") {
     chrome.tabs.create({ url: chrome.runtime.getURL("login.html") });
   }
+
+  var dayModeDefaults = {
+    futureself_active_tab: "night",
+    futureself_day_blocklist: [],
+    futureself_schedule_enabled: false,
+    futureself_schedule_start: "10:00",
+    futureself_schedule_end: "13:00",
+    futureself_schedule_days: ["mon", "tue", "wed", "thu", "fri"],
+    futureself_pomodoro_active: false,
+    futureself_pomodoro_duration: 45,
+    futureself_pomodoro_break: 10,
+    futureself_pomodoro_long_break: 15,
+    futureself_pomodoro_long_break_after: 3,
+    futureself_pomodoro_task: "",
+    futureself_pomodoro_start_ts: null,
+    futureself_pomodoro_end_ts: null,
+    futureself_pomodoro_on_break: false,
+    futureself_pomodoro_break_end_ts: null,
+    futureself_pomodoro_session_count: 0,
+    futureself_pomodoro_total_today: 0
+  };
+
+  chrome.storage.local.get(Object.keys(dayModeDefaults), function (existing) {
+    var toSet = {};
+    for (var key in dayModeDefaults) {
+      if (existing[key] === undefined) {
+        toSet[key] = dayModeDefaults[key];
+      }
+    }
+    if (Object.keys(toSet).length > 0) {
+      chrome.storage.local.set(toSet);
+    }
+  });
 });
 
 // Receive auth tokens from futureself.joinhustleclub.com web app
