@@ -94,14 +94,30 @@
   var storedTask = (await chrome.storage.local.get("futureself_pomodoro_task")).futureself_pomodoro_task || "";
   taskInput.value = storedTask;
 
+  // Session timer
+  function msToMMSS(ms) {
+    if (ms <= 0) return "00:00";
+    var total = Math.ceil(ms / 1000);
+    return String(Math.floor(total / 60)).padStart(2, "0") + ":" + String(total % 60).padStart(2, "0");
+  }
+  var sessionTimerInterval = null;
+  function startSessionTimer(endTs) {
+    if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+    document.getElementById("popup-session-timer").textContent = msToMMSS(endTs - Date.now());
+    sessionTimerInterval = setInterval(function () {
+      document.getElementById("popup-session-timer").textContent = msToMMSS(endTs - Date.now());
+    }, 1000);
+  }
+
   // Active session state on load
   var pomData = await chrome.storage.local.get([
-    "futureself_pomodoro_active", "futureself_pomodoro_task"
+    "futureself_pomodoro_active", "futureself_pomodoro_task", "futureself_pomodoro_end_ts"
   ]);
   if (pomData.futureself_pomodoro_active) {
     document.getElementById("day-pomodoro-form").classList.add("fs-hidden");
     document.getElementById("day-active-session").classList.remove("fs-hidden");
     document.getElementById("active-task-label").textContent = pomData.futureself_pomodoro_task || "";
+    if (pomData.futureself_pomodoro_end_ts) startSessionTimer(pomData.futureself_pomodoro_end_ts);
   }
 
   // Start Session
@@ -120,10 +136,12 @@
     document.getElementById("day-pomodoro-form").classList.add("fs-hidden");
     document.getElementById("day-active-session").classList.remove("fs-hidden");
     document.getElementById("active-task-label").textContent = task;
+    startSessionTimer(now + duration * 60 * 1000);
   });
 
   // End Session
   document.getElementById("btn-end-session").addEventListener("click", async function () {
+    if (sessionTimerInterval) clearInterval(sessionTimerInterval);
     await chrome.storage.local.set({ futureself_pomodoro_active: false });
     document.getElementById("day-active-session").classList.add("fs-hidden");
     document.getElementById("day-pomodoro-form").classList.remove("fs-hidden");
