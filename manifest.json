@@ -35,9 +35,6 @@
   "externally_connectable": {
     "matches": ["https://futureself.joinhustleclub.com/*"]
   },
-  "chrome_url_overrides": {
-    "newtab": "newtab.html"
-  },
   "web_accessible_resources": [
     {
       "resources": ["login.html"],
