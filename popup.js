@@ -233,6 +233,8 @@
     var isHidden = content.classList.toggle("fs-hidden");
     arrow.textContent = isHidden ? "▶" : "▼";
   });
+  document.getElementById("day-blocklist-content").classList.remove("fs-hidden");
+  document.getElementById("day-blocklist-arrow").textContent = "▼";
 
   // Render any existing custom domains (not in default list)
   var customList = document.getElementById("day-custom-domains-list");
