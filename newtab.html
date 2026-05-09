@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FutureSelf</title>
+  <style>
+    @import url('https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=general-sans@400,500,600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0B0E14;
+      color: #e0e5ef;
+      font-family: 'General Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nt-state { display: none; }
+    .nt-state.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .nt-timer {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 80px;
+      font-weight: 500;
+      line-height: 1;
+      color: #FBBF24;
+      letter-spacing: -2px;
+    }
+    .nt-timer.green { color: #4ADE80; }
+
+    .nt-label {
+      font-size: 16px;
+      color: #7b879e;
+    }
+
+    .nt-task {
+      font-size: 13px;
+      color: #414d63;
+      font-style: italic;
+    }
+
+    .nt-dots {
+      display: flex;
+      gap: 8px;
+    }
+    .nt-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #1e2636;
+    }
+    .nt-dot.done { background: #FBBF24; }
+
+    .nt-btn {
+      font-family: 'General Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 24px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+    .nt-btn:hover { opacity: 0.85; }
+    .nt-btn-amber { background: #FBBF24; color: #0B0E14; }
+    .nt-btn-green { background: #4ADE80; color: #0B0E14; }
+    .nt-btn-muted {
+      background: transparent;
+      color: #7b879e;
+      border: 1px solid #1e2636;
+    }
+
+    .nt-btn-row { display: flex; gap: 10px; }
+
+    .nt-idle-label { font-size: 15px; color: #414d63; }
+
+    .nt-hint {
+      font-size: 12px;
+      color: #414d63;
+      margin-top: 4px;
+    }
+
+    .nt-moon { font-size: 48px; line-height: 1; }
+
+    .nt-night-label {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: #e0e5ef;
+    }
+    .nt-night-sub { font-size: 14px; color: #414d63; }
+
+    .nt-break-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #414d63;
+    }
+    .nt-break-input {
+      width: 48px;
+      background: #0f1219;
+      border: 1px solid #1e2636;
+      border-radius: 6px;
+      color: #e0e5ef;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      padding: 4px 6px;
+      text-align: center;
+    }
+    .nt-break-input:focus { outline: none; border-color: #4ADE80; }
+  </style>
+</head>
+<body>
+
+  <!-- STATE 1: No session active -->
+  <div class="nt-state" id="state-idle">
+    <p class="nt-idle-label">No focus session active</p>
+    <div class="nt-btn-row">
+      <button class="nt-btn nt-btn-amber" id="btn-start-pomodoro">Start Pomodoro</button>
+      <button class="nt-btn nt-btn-muted" id="btn-enable-schedule">Enable Schedule</button>
+    </div>
+    <p class="nt-hint" id="popup-hint"></p>
+  </div>
+
+  <!-- STATE 2: Pomodoro session active -->
+  <div class="nt-state" id="state-session">
+    <div class="nt-timer" id="session-timer">00:00</div>
+    <p class="nt-label" id="session-label">Focus Session — 45 min</p>
+    <p class="nt-task" id="session-task"></p>
+    <div class="nt-dots" id="session-dots"></div>
+    <button class="nt-btn nt-btn-muted" id="btn-end-session">End Session</button>
+  </div>
+
+  <!-- STATE 3: Break active -->
+  <div class="nt-state" id="state-break">
+    <div class="nt-timer green" id="break-timer">00:00</div>
+    <p class="nt-label">Break time ☕</p>
+    <div class="nt-break-input-row">
+      <span>Adjust:</span>
+      <input class="nt-break-input" type="number" id="input-break-mins" min="1" max="60" value="10" />
+      <span>min</span>
+    </div>
+    <button class="nt-btn nt-btn-muted" id="btn-skip-break">Skip break</button>
+  </div>
+
+  <!-- STATE 4: Long break active -->
+  <div class="nt-state" id="state-long-break">
+    <div class="nt-timer green" id="long-break-timer">00:00</div>
+    <p class="nt-label">Long break — you earned it 🎉</p>
+    <div class="nt-break-input-row">
+      <span>Adjust:</span>
+      <input class="nt-break-input" type="number" id="input-long-break-mins" min="1" max="60" value="15" />
+      <span>min</span>
+    </div>
+    <button class="nt-btn nt-btn-muted" id="btn-skip-long-break">Skip break</button>
+  </div>
+
+  <!-- STATE 5: Night mode active -->
+  <div class="nt-state" id="state-night">
+    <div class="nt-moon">🌙</div>
+    <p class="nt-night-label">Sleep protection active</p>
+    <p class="nt-night-sub" id="night-wake-text">Screens off until —</p>
+  </div>
+
+  <script src="newtab.js"></script>
+</body>
+</html>
