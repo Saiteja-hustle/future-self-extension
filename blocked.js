@@ -74,6 +74,12 @@
 
   var params = new URLSearchParams(window.location.search);
   var site = params.get("site") || "a website";
+  var mode = params.get("mode") || "night";
+  var reason = params.get("reason") || "";
+
+  // ── Day mode early exit ────────────────────
+
+  if (mode === "day") { await renderDayMode(); return; }
 
   // ── Load config from storage ───────────────
 
@@ -789,5 +795,61 @@
     var div = document.createElement("div");
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  // ═══════════════════════════════════════════
+  // Day Mode Intercept
+  // ═══════════════════════════════════════════
+
+  async function renderDayMode() {
+    document.body.classList.add("day-mode");
+
+    var dayData = await chrome.storage.local.get([
+      "futureself_pomodoro_task", "futureself_pomodoro_end_ts"
+    ]);
+    var task = dayData.futureself_pomodoro_task || "";
+    var endTs = dayData.futureself_pomodoro_end_ts || 0;
+    var remainingMin = Math.max(0, Math.round((endTs - Date.now()) / 60000));
+
+    var DAY_QUESTIONS = [
+      "You said you were working on: [task]. Is [site] part of that?",
+      "[site] during focus time? Your future self is watching. And judging. (Lovingly.)",
+      "This is your focus session talking. [site] will still be there in [X] minutes.",
+      "Quick check: is [site] going to help you finish what you started?",
+      "You blocked [site] for a reason. That reason hasn't changed in the last 30 seconds."
+    ];
+
+    var q = DAY_QUESTIONS[Math.floor(Math.random() * DAY_QUESTIONS.length)];
+    q = q.replace(/\[site\]/g, site)
+         .replace(/\[task\]/g, task || "your task")
+         .replace(/\[X\]/g, remainingMin);
+
+    showScreen("screen-question");
+    document.getElementById("mode-badge").textContent = "Focus Mode";
+    document.getElementById("site-name").textContent = site.toLowerCase();
+    document.getElementById("time-notice").textContent =
+      reason === "pomodoro" ? "Focus Session Active" : "Schedule Block Active";
+    document.getElementById("question-text").textContent = q;
+
+    var btnBack = document.getElementById("q-sleep");
+    var btnEnd  = document.getElementById("q-override");
+    var btnBreathe = document.getElementById("q-breathe");
+
+    btnBack.textContent = "Back to work.";
+    btnBack.classList.remove("fs-btn-sleep");
+    btnBack.classList.add("fs-btn-day-primary");
+    btnEnd.textContent = "End session";
+    btnBreathe.style.display = "none";
+
+    startFrictionTimer("q-countdown", "q-actions", 10);
+
+    btnBack.addEventListener("click", function () {
+      window.close();
+      setTimeout(function () { window.location.href = "about:blank"; }, 100);
+    });
+    btnEnd.addEventListener("click", async function () {
+      await chrome.storage.local.set({ futureself_pomodoro_active: false });
+      window.location.href = "https://" + site;
+    });
   }
 })();
