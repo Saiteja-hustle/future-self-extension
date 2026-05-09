@@ -175,6 +175,102 @@
     });
   });
 
+  // ── Day Block List ────────────────────────────────────────────
+
+  var DAY_DEFAULT_DOMAINS = [
+    "whatsapp.com", "instagram.com", "facebook.com", "twitter.com", "threads.net", "linkedin.com",
+    "youtube.com", "twitch.tv", "netflix.com", "primevideo.com",
+    "reddit.com", "news.ycombinator.com", "bbc.com", "cnn.com",
+    "amazon.com", "flipkart.com", "ebay.com", "myntra.com"
+  ];
+
+  var dayBlocklistData = await chrome.storage.local.get("futureself_day_blocklist");
+  var dayBlocklist = dayBlocklistData.futureself_day_blocklist;
+  if (!dayBlocklist || dayBlocklist.length === 0) {
+    dayBlocklist = DAY_DEFAULT_DOMAINS.slice();
+    await chrome.storage.local.set({ futureself_day_blocklist: dayBlocklist });
+  }
+
+  async function saveDayBlocklist() {
+    var checked = Array.from(
+      document.querySelectorAll("#day-blocklist-content input[type=checkbox][data-domain]")
+    ).filter(function (cb) { return cb.checked; }).map(function (cb) { return cb.value; });
+    dayBlocklist = checked;
+    await chrome.storage.local.set({ futureself_day_blocklist: checked });
+  }
+
+  function updateCheckToggleBtn(cat) {
+    var checkboxes = Array.from(document.querySelectorAll(".fs-blocklist-items[data-cat=" + cat + "] input[type=checkbox]"));
+    var allChecked = checkboxes.every(function (cb) { return cb.checked; });
+    var btn = document.querySelector(".fs-check-toggle-btn[data-cat=" + cat + "]");
+    if (btn) btn.textContent = allChecked ? "Uncheck all" : "Check all";
+  }
+
+  // Restore checkbox state and wire change handlers
+  document.querySelectorAll("#day-blocklist-content .fs-blocklist-items input[type=checkbox]").forEach(function (cb) {
+    cb.dataset.domain = "1";
+    cb.checked = dayBlocklist.includes(cb.value);
+    cb.addEventListener("change", saveDayBlocklist);
+  });
+  ["social", "video", "news", "shopping"].forEach(updateCheckToggleBtn);
+
+  // Check all / Uncheck all per category
+  document.querySelectorAll(".fs-check-toggle-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var cat = btn.dataset.cat;
+      var checkboxes = Array.from(document.querySelectorAll(".fs-blocklist-items[data-cat=" + cat + "] input[type=checkbox]"));
+      var allChecked = checkboxes.every(function (cb) { return cb.checked; });
+      checkboxes.forEach(function (cb) { cb.checked = !allChecked; });
+      btn.textContent = allChecked ? "Check all" : "Uncheck all";
+      saveDayBlocklist();
+    });
+  });
+
+  // Collapsible toggle
+  document.getElementById("day-blocklist-toggle").addEventListener("click", function () {
+    var content = document.getElementById("day-blocklist-content");
+    var arrow = document.getElementById("day-blocklist-arrow");
+    var isHidden = content.classList.toggle("fs-hidden");
+    arrow.textContent = isHidden ? "▶" : "▼";
+  });
+  document.getElementById("day-blocklist-content").classList.remove("fs-hidden");
+  document.getElementById("day-blocklist-arrow").textContent = "▼";
+
+  // Render any existing custom domains (not in default list)
+  var customList = document.getElementById("day-custom-domains-list");
+  var customDomains = dayBlocklist.filter(function (d) { return !DAY_DEFAULT_DOMAINS.includes(d); });
+
+  function renderCustomDomain(domain) {
+    var label = document.createElement("label");
+    label.className = "fs-blocklist-item";
+    var cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.value = domain;
+    cb.dataset.domain = "1";
+    cb.checked = true;
+    cb.addEventListener("change", saveDayBlocklist);
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(" " + domain));
+    customList.appendChild(label);
+  }
+
+  customDomains.forEach(renderCustomDomain);
+
+  // Add custom domain
+  var customDomainInput = document.getElementById("input-day-custom-domain");
+  document.getElementById("btn-add-day-domain").addEventListener("click", async function () {
+    var domain = customDomainInput.value.trim().toLowerCase()
+      .replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+    if (!domain || dayBlocklist.includes(domain)) return;
+    dayBlocklist.push(domain);
+    await chrome.storage.local.set({ futureself_day_blocklist: dayBlocklist });
+    renderCustomDomain(domain);
+    customDomainInput.value = "";
+  });
+  customDomainInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") document.getElementById("btn-add-day-domain").click();
+  });
+
   // ─────────────────────────────────────────────────────────────
 
   // Step 1: Check trial status and is_paid from Supabase (single profile fetch)
