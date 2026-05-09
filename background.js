@@ -70,6 +70,15 @@ function checkBlocklist(domain, blocklist) {
   return { blocked: false };
 }
 
+function checkDayBlocklist(domain, blocklist) {
+  for (var i = 0; i < blocklist.length; i++) {
+    if (domain === blocklist[i] || domain.endsWith("." + blocklist[i])) {
+      return blocklist[i];
+    }
+  }
+  return null;
+}
+
 async function hasActiveOverride(domain) {
   var data = await chrome.storage.local.get("futureself_overrides");
   var overrides = data.futureself_overrides || [];
@@ -101,60 +110,178 @@ async function getAuthStatus() {
   }
 }
 
+// Day Mode navigation handler
+async function handleDayModeNavigation(details) {
+  var domain = extractDomain(details.url);
+  if (!domain) return;
+
+  var now = Date.now();
+  var nowDate = new Date(now);
+
+  var dayData = await chrome.storage.local.get([
+    "futureself_pomodoro_active",
+    "futureself_pomodoro_end_ts",
+    "futureself_pomodoro_on_break",
+    "futureself_pomodoro_break_end_ts",
+    "futureself_pomodoro_break",
+    "futureself_pomodoro_session_count",
+    "futureself_schedule_enabled",
+    "futureself_schedule_start",
+    "futureself_schedule_end",
+    "futureself_schedule_days",
+    "futureself_day_blocklist"
+  ]);
+
+  var dayBlocklist = dayData.futureself_day_blocklist || [];
+
+  // ── POMODORO ──────────────────────────────────────────────────
+  if (dayData.futureself_pomodoro_active) {
+    var endTs = dayData.futureself_pomodoro_end_ts || 0;
+
+    if (now >= endTs) {
+      // Session timer expired — auto-end, start break
+      var breakMs = (dayData.futureself_pomodoro_break || 10) * 60 * 1000;
+      console.log("[FutureSelf Day] Pomodoro session expired, starting break");
+      await chrome.storage.local.set({
+        futureself_pomodoro_active: false,
+        futureself_pomodoro_on_break: true,
+        futureself_pomodoro_break_end_ts: now + breakMs
+      });
+      return; // break has started, allow navigation
+    }
+
+    // Session still active — check domain against day blocklist
+    var matched = checkDayBlocklist(domain, dayBlocklist);
+    if (matched) {
+      console.log("[FutureSelf Day] Pomodoro blocking:", domain);
+      chrome.tabs.update(details.tabId, {
+        url: chrome.runtime.getURL(
+          "blocked.html?site=" + encodeURIComponent(matched) + "&mode=day&reason=pomodoro"
+        )
+      });
+    } else {
+      console.log("[FutureSelf Day] Pomodoro active — domain not blocked:", domain);
+    }
+    return; // pomodoro is authoritative, never fall through to schedule
+  }
+
+  // ── BREAK ─────────────────────────────────────────────────────
+  if (dayData.futureself_pomodoro_on_break) {
+    var breakEndTs = dayData.futureself_pomodoro_break_end_ts || 0;
+    if (now < breakEndTs) {
+      console.log("[FutureSelf Day] On break — allowing navigation");
+      return;
+    }
+    // Break has expired — clean up, do NOT auto-start next session
+    var newCount = (dayData.futureself_pomodoro_session_count || 0) + 1;
+    console.log("[FutureSelf Day] Break expired, session count:", newCount);
+    await chrome.storage.local.set({
+      futureself_pomodoro_on_break: false,
+      futureself_pomodoro_break_end_ts: null,
+      futureself_pomodoro_session_count: newCount
+    });
+    // Fall through to schedule check
+  }
+
+  // ── SCHEDULE ──────────────────────────────────────────────────
+  if (!dayData.futureself_schedule_enabled) {
+    console.log("[FutureSelf Day] Schedule disabled — allowing navigation");
+    return;
+  }
+
+  var dayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  var todayName = dayNames[nowDate.getDay()];
+  var schedDays = dayData.futureself_schedule_days || ["mon", "tue", "wed", "thu", "fri"];
+  if (!schedDays.includes(todayName)) {
+    console.log("[FutureSelf Day] Schedule not active today:", todayName);
+    return;
+  }
+
+  var nowMinutes = nowDate.getHours() * 60 + nowDate.getMinutes();
+  var startMinutes = timeToMinutes(dayData.futureself_schedule_start || "10:00");
+  var endMinutes = timeToMinutes(dayData.futureself_schedule_end || "13:00");
+  if (nowMinutes < startMinutes || nowMinutes >= endMinutes) {
+    console.log("[FutureSelf Day] Outside schedule window:", nowMinutes, "vs", startMinutes, "-", endMinutes);
+    return;
+  }
+
+  var matched = checkDayBlocklist(domain, dayBlocklist);
+  if (matched) {
+    console.log("[FutureSelf Day] Schedule blocking:", domain);
+    chrome.tabs.update(details.tabId, {
+      url: chrome.runtime.getURL(
+        "blocked.html?site=" + encodeURIComponent(matched) + "&mode=day&reason=schedule"
+      )
+    });
+  } else {
+    console.log("[FutureSelf Day] Schedule active — domain not blocked:", domain);
+  }
+}
+
 // Main navigation handler
 chrome.webNavigation.onBeforeNavigate.addListener(async function (details) {
   if (details.frameId !== 0) return;
   if (details.url.startsWith("chrome-extension://")) return;
 
-  var config = await chrome.storage.local.get([
-    "futureself_wakeTime", "futureself_blockStartTime",
-    "futureself_blocklist", "futureself_setupComplete"
-  ]);
+  var tabData = await chrome.storage.local.get("futureself_active_tab");
+  var activeTab = tabData.futureself_active_tab || "night";
 
-  if (!config.futureself_setupComplete) return;
+  // ── NIGHT MODE ────────────────────────────────────────────────
+  if (activeTab === "night") {
+    var config = await chrome.storage.local.get([
+      "futureself_wakeTime", "futureself_blockStartTime",
+      "futureself_blocklist", "futureself_setupComplete"
+    ]);
 
-  var now = new Date();
-  var nowMinutes = now.getHours() * 60 + now.getMinutes();
-  var blockStartMinutes = timeToMinutes(config.futureself_blockStartTime);
-  var wakeMinutes = timeToMinutes(config.futureself_wakeTime);
+    if (!config.futureself_setupComplete) return;
 
-  if (!isInBlockWindow(nowMinutes, blockStartMinutes, wakeMinutes)) return;
+    var now = new Date();
+    var nowMinutes = now.getHours() * 60 + now.getMinutes();
+    var blockStartMinutes = timeToMinutes(config.futureself_blockStartTime);
+    var wakeMinutes = timeToMinutes(config.futureself_wakeTime);
 
-  var domain = extractDomain(details.url);
-  if (!domain) return;
+    if (!isInBlockWindow(nowMinutes, blockStartMinutes, wakeMinutes)) return;
 
-  var result = checkBlocklist(domain, config.futureself_blocklist);
-  if (!result.blocked) return;
+    var domain = extractDomain(details.url);
+    if (!domain) return;
 
-  // Check auth status
-  var authStatus = await getAuthStatus();
+    var result = checkBlocklist(domain, config.futureself_blocklist);
+    if (!result.blocked) return;
 
-  if (!authStatus.isLoggedIn) {
-    // Not logged in — redirect to login
-    chrome.tabs.update(details.tabId, { url: chrome.runtime.getURL("login.html") });
-    return;
-  }
+    // Check auth status
+    var authStatus = await getAuthStatus();
 
-  if (!authStatus.isTrialActive && !authStatus.isPaid) {
-    // Trial expired and not paid — show upgrade page
-    var upgradeUrl = chrome.runtime.getURL(
-      "upgrade.html?site=" + encodeURIComponent(result.domain)
+    if (!authStatus.isLoggedIn) {
+      // Not logged in — redirect to login
+      chrome.tabs.update(details.tabId, { url: chrome.runtime.getURL("login.html") });
+      return;
+    }
+
+    if (!authStatus.isTrialActive && !authStatus.isPaid) {
+      // Trial expired and not paid — show upgrade page
+      var upgradeUrl = chrome.runtime.getURL(
+        "upgrade.html?site=" + encodeURIComponent(result.domain)
+      );
+      chrome.tabs.update(details.tabId, { url: upgradeUrl });
+      return;
+    }
+
+    // Trial active or paid — normal blocking
+    var overridden = await hasActiveOverride(result.domain);
+    if (overridden) return;
+
+    await incrementBlockCount();
+
+    var redirectUrl = chrome.runtime.getURL(
+      "blocked.html?site=" + encodeURIComponent(result.domain) + "&category=" + encodeURIComponent(result.category)
     );
-    chrome.tabs.update(details.tabId, { url: upgradeUrl });
+
+    chrome.tabs.update(details.tabId, { url: redirectUrl });
     return;
   }
 
-  // Trial active or paid — normal blocking
-  var overridden = await hasActiveOverride(result.domain);
-  if (overridden) return;
-
-  await incrementBlockCount();
-
-  var redirectUrl = chrome.runtime.getURL(
-    "blocked.html?site=" + encodeURIComponent(result.domain) + "&category=" + encodeURIComponent(result.category)
-  );
-
-  chrome.tabs.update(details.tabId, { url: redirectUrl });
+  // ── DAY MODE ──────────────────────────────────────────────────
+  await handleDayModeNavigation(details);
 });
 
 // Reset nightly counters at wake time
