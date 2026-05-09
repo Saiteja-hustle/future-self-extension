@@ -2,12 +2,13 @@
   "manifest_version": 3,
   "name": "Future Self",
   "short_name": "FutureSelf",
-  "version": "2.0.3",
+  "version": "3.0.0",
   "description": "Block distracting sites during your sleep window—including work and AI tools—so your future self can rest and stay focused.",
   "permissions": [
     "storage",
     "webNavigation",
-    "alarms"
+    "alarms",
+    "tabs"
   ],
   "host_permissions": [
     "<all_urls>",
@@ -37,7 +38,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["login.html"],
+      "resources": ["login.html", "blocked.html"],
       "matches": ["<all_urls>"]
     }
   ]
