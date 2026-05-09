@@ -588,6 +588,129 @@ body {
   color: var(--text-muted);
 }
 
+/* ---- Day Block List ---- */
+
+.fs-day-blocklist-section {
+  margin-top: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.fs-day-blocklist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-left: 3px solid #FBBF24;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  user-select: none;
+}
+
+.fs-day-blocklist-header:hover {
+  background: var(--card-hover);
+}
+
+.fs-blocklist-arrow {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+#day-blocklist-content {
+  padding: 10px 12px 12px;
+}
+
+.fs-blocklist-category {
+  margin-bottom: 10px;
+}
+
+.fs-blocklist-cat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.fs-blocklist-cat-label {
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #FBBF24;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.fs-check-toggle-btn {
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.fs-check-toggle-btn:hover { color: var(--text-sec); }
+
+.fs-blocklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fs-blocklist-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-sec);
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.fs-blocklist-item input[type=checkbox] {
+  accent-color: #FBBF24;
+  cursor: pointer;
+}
+
+.fs-day-custom-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.fs-day-custom-row .fs-day-input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.fs-btn-add-domain {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-sec);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.fs-btn-add-domain:hover {
+  border-color: #FBBF24;
+  color: #FBBF24;
+}
+
 /* ---- Paid badge ---- */
 
 .fs-paid-badge {

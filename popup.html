@@ -159,6 +159,78 @@
 
       </div><!-- /#day-schedule-panel -->
 
+      <!-- Day Block List -->
+      <div class="fs-day-blocklist-section">
+        <div class="fs-day-blocklist-header" id="day-blocklist-toggle">
+          <span>Blocked Sites (Day)</span>
+          <span class="fs-blocklist-arrow" id="day-blocklist-arrow">▶</span>
+        </div>
+        <div id="day-blocklist-content" class="fs-hidden">
+
+          <div class="fs-blocklist-category">
+            <div class="fs-blocklist-cat-header">
+              <span class="fs-blocklist-cat-label">Social Media</span>
+              <button class="fs-check-toggle-btn" data-cat="social">Uncheck all</button>
+            </div>
+            <div class="fs-blocklist-items" data-cat="social">
+              <label class="fs-blocklist-item"><input type="checkbox" value="whatsapp.com" /> whatsapp.com</label>
+              <label class="fs-blocklist-item"><input type="checkbox" value="instagram.com" /> instagram.com</label>
+              <label class="fs-blocklist-item"><input type="checkbox" value="facebook.com" /> facebook.com</label>
+              <label class="fs-blocklist-item"><input type="checkbox" value="twitter.com" /> twitter.com</label>
+              <label class="fs-blocklist-item"><input type="checkbox" value="threads.net" /> threads.net</label>
+              <label class="fs-blocklist-item"><input type="checkbox" value="linkedin.com" /> linkedin.com</label>
+            </div>
+          </div>
+
+          <div class="fs-blocklist-category">
+            <div class="fs-blocklist-cat-header">
+              <span class="fs-blocklist-cat-label">Video &amp; Streaming</span>
+              <button class="fs-check-toggle-btn" data-cat="video">Uncheck all</button>
+            </div>
+            <div class="fs-blocklist-items" data-cat="video">
+              <label class="fs-blocklist-item"><input type="checkbox" value="youtube.com" /> youtube.com</label>
+              <label class="fs-blocklist-item"><input type="checkbox" value="twitch.tv" /> twitch.tv</label>
+              <label class="fs-blocklist-item"><input type="checkbox" value="netflix.com" /> netflix.com</label>
+              <label class="fs-blocklist-item"><input type="checkbox" value="primevideo.com" /> primevideo.com</label>
+            </div>
+          </div>
+
+          <div class="fs-blocklist-category">
+            <div class="fs-blocklist-cat-header">
+              <span class="fs-blocklist-cat-label">News &amp; Rabbit Holes</span>
+              <button class="fs-check-toggle-btn" data-cat="news">Uncheck all</button>
+            </div>
+            <div class="fs-blocklist-items" data-cat="news">
+              <label class="fs-blocklist-item"><input type="checkbox" value="reddit.com" /> reddit.com</label>
+              <label class="fs-blocklist-item"><input type="checkbox" value="news.ycombinator.com" /> news.ycombinator.com</label>
+              <label class="fs-blocklist-item"><input type="checkbox" value="bbc.com" /> bbc.com</label>
+              <label class="fs-blocklist-item"><input type="checkbox" value="cnn.com" /> cnn.com</label>
+            </div>
+          </div>
+
+          <div class="fs-blocklist-category">
+            <div class="fs-blocklist-cat-header">
+              <span class="fs-blocklist-cat-label">Shopping</span>
+              <button class="fs-check-toggle-btn" data-cat="shopping">Uncheck all</button>
+            </div>
+            <div class="fs-blocklist-items" data-cat="shopping">
+              <label class="fs-blocklist-item"><input type="checkbox" value="amazon.com" /> amazon.com</label>
+              <label class="fs-blocklist-item"><input type="checkbox" value="flipkart.com" /> flipkart.com</label>
+              <label class="fs-blocklist-item"><input type="checkbox" value="ebay.com" /> ebay.com</label>
+              <label class="fs-blocklist-item"><input type="checkbox" value="myntra.com" /> myntra.com</label>
+            </div>
+          </div>
+
+          <div id="day-custom-domains-list"></div>
+
+          <div class="fs-day-custom-row">
+            <input type="text" class="fs-day-input" id="input-day-custom-domain" placeholder="e.g. example.com" />
+            <button class="fs-btn-add-domain" id="btn-add-day-domain">Add</button>
+          </div>
+
+        </div><!-- /#day-blocklist-content -->
+      </div><!-- /.fs-day-blocklist-section -->
+
     </div><!-- /#day-panel -->
   </div>
   <script src="supabase-client.js"></script>
