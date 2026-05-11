@@ -89,6 +89,15 @@
 
     <div id="day-panel" class="fs-hidden">
 
+      <!-- Day: not logged in -->
+      <div id="day-logged-out" class="fs-hidden" style="text-align:center; padding:24px 8px;">
+        <p style="font-size:15px; font-weight:600; color:#e0e5ef; margin-bottom:8px;">Sign in to use Day Mode</p>
+        <p style="font-size:12.5px; color:#7b879e; line-height:1.5; margin-bottom:20px;">Create a free account to access focus sessions and day-time site blocking.</p>
+        <button class="fs-btn-amber" id="btn-day-signin" style="margin-top:0;">Sign In</button>
+      </div>
+
+      <div id="day-main-content">
+
       <!-- Sub-mode selector -->
       <div class="fs-submode-toggle">
         <button class="fs-submode-btn active-submode" id="btn-submode-pomodoro">⏱ Pomodoro</button>
@@ -232,6 +241,7 @@
         </div><!-- /#day-blocklist-content -->
       </div><!-- /.fs-day-blocklist-section -->
 
+      </div><!-- /#day-main-content -->
     </div><!-- /#day-panel -->
   </div>
   <script src="supabase-client.js"></script>
