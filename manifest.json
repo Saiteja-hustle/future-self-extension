@@ -2,13 +2,12 @@
   "manifest_version": 3,
   "name": "Future Self",
   "short_name": "FutureSelf",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Block distracting sites during the day to protect your focus and at night to protect your sleep, for your Future Self",
   "permissions": [
     "storage",
     "webNavigation",
-    "alarms",
-    "tabs"
+    "alarms"
   ],
   "host_permissions": [
     "<all_urls>",
