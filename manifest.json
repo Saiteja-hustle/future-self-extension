@@ -3,7 +3,7 @@
   "name": "Future Self",
   "short_name": "FutureSelf",
   "version": "3.0.0",
-  "description": "Block distracting sites during your sleep window—including work and AI tools—so your future self can rest and stay focused.",
+  "description": "Block distracting sites during the day to protect your focus and at night to protect your sleep, for your Future Self",
   "permissions": [
     "storage",
     "webNavigation",
