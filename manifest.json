@@ -38,8 +38,8 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["login.html", "blocked.html"],
-      "matches": ["<all_urls>"]
+      "resources": ["login.html"],
+      "matches": ["https://futureself.joinhustleclub.com/*"]
     }
   ]
 }
