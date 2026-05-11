@@ -395,7 +395,10 @@
   // Trial banner (only show for non-paid trial users)
   if (!authStatus.isPaid && authStatus.isTrialActive) {
     document.getElementById("trial-banner").classList.remove("fs-hidden");
-    document.getElementById("trial-text").textContent = authStatus.trialHoursLeft + " hours remaining in trial";
+    var trialLabel = authStatus.trialHoursLeft > 24
+      ? Math.ceil(authStatus.trialHoursLeft / 24) + " days remaining in trial"
+      : authStatus.trialHoursLeft + " hours remaining in trial";
+    document.getElementById("trial-text").textContent = trialLabel;
   }
 
   // Settings link
