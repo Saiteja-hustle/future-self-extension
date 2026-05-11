@@ -34,6 +34,16 @@
     applyMode("day");
   });
 
+  // Day Mode auth gate
+  var tokenData = await chrome.storage.local.get("futureself_access_token");
+  if (!tokenData.futureself_access_token) {
+    document.getElementById("day-logged-out").classList.remove("fs-hidden");
+    document.getElementById("day-main-content").classList.add("fs-hidden");
+    document.getElementById("btn-day-signin").addEventListener("click", function () {
+      chrome.tabs.create({ url: chrome.runtime.getURL("login.html") });
+    });
+  }
+
   // ── Day Mode UI ──────────────────────────────────────────────
 
   // Sub-mode toggle
