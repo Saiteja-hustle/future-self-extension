@@ -67,7 +67,7 @@
           successEl.textContent = "Check your email to confirm your account, then log in.";
           successEl.classList.add("fs-visible");
         }
-        btn.textContent = "Start Free Trial — 24 Hours Free";
+        btn.textContent = "Start Free Trial — 3 Days Free";
         btn.disabled = false;
       }
     } catch (e) {
@@ -76,7 +76,7 @@
       } else {
         showError(errorEl, e.message);
       }
-      btn.textContent = "Start Free Trial — 24 Hours Free";
+      btn.textContent = "Start Free Trial — 3 Days Free";
       btn.disabled = false;
     }
   });

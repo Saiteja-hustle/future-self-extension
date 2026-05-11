@@ -146,7 +146,7 @@ var SupabaseAuth = {
   },
 
   async checkAuthStatus() {
-    var TRIAL_DURATION_MS = 24 * 60 * 60 * 1000;
+    var TRIAL_DURATION_MS = 72 * 60 * 60 * 1000;
     var tokens = await SupabaseAuth.getStoredTokens();
     var accessFlags = await chrome.storage.local.get(["futureself_freeForever", "futureself_isPaid"]);
     var hasForeverAccess = accessFlags.futureself_freeForever === true || accessFlags.futureself_isPaid === true;
