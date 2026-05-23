@@ -13,7 +13,7 @@ var SupabaseAuth = {
         "Content-Type": "application/json",
         "apikey": SUPABASE_ANON_KEY
       },
-      body: JSON.stringify({ email: email, password: password, email_redirect_to: "https://futureself.joinhustleclub.com/auth/callback" })
+      body: JSON.stringify({ email: email, password: password, email_redirect_to: "https://www.getfutureself.com/auth/callback" })
     });
     var data = await res.json();
     if (!res.ok) {
