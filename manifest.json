@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Website Blocker - Focus & Sleep by FutureSelf",
   "short_name": "FutureSelf",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Block distracting websites day & night. Focus timer by day. Sleep blocker by night. Reflective pause, not a hard wall.",
   "permissions": [
     "storage",
