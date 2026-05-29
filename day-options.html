@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Future Self &mdash; Day Mode</title>
+  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=general-sans@400,500,600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap">
+  <style>
+    /* === Future Self — Day Options === */
+    :root {
+      --bg:             #0B0E14;
+      --surface:        #1a1d26;
+      --input-bg:       #131720;
+      --accent:         #FBBF24;
+      --accent-dim:     rgba(251,191,36,0.1);
+      --accent-border:  rgba(251,191,36,0.2);
+      --accent-text:    #412402;
+      --text:           #f0f0f0;
+      --muted:          #888;
+      --border:         #2a2d35;
+      --red-soft:       #e87272;
+      --font-display:   'Clash Display', sans-serif;
+      --font-body:      'General Sans', sans-serif;
+      --font-mono:      'JetBrains Mono', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    /* ---- Header ---- */
+    .d-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 22px 32px 18px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 22px;
+    }
+
+    .d-brand { flex: 1; }
+
+    .d-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .d-tagline {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .d-tabs {
+      display: flex;
+      gap: 3px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3px;
+    }
+
+    .d-tab {
+      border: none;
+      border-radius: 7px;
+      padding: 6px 20px;
+      font-size: 12.5px;
+      font-family: var(--font-body);
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .d-tab--active {
+      background: var(--accent);
+      color: var(--accent-text);
+      font-weight: 600;
+    }
+
+    /* ---- Two-column layout ---- */
+    .d-columns {
+      display: flex;
+      gap: 16px;
+      padding: 0 32px;
+      align-items: flex-start;
+    }
+
+    .d-left {
+      width: 340px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .d-right {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* ---- Cards ---- */
+    .d-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    /* ---- Section labels ---- */
+    .d-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .d-sublabel {
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--muted);
+      margin-bottom: 8px;
+      margin-top: 14px;
+    }
+
+    /* ---- Mode toggle pills ---- */
+    .d-mode-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .d-pill {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 16px;
+      font-size: 12.5px;
+      font-family: var(--font-body);
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .d-pill--active {
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ---- Duration pills ---- */
+    .d-dur-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .d-dur-pill {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 13px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .d-dur-pill--active {
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: var(--accent);
+    }
+
+    /* ---- Input pair ---- */
+    .d-input-pair {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .d-input-group { flex: 1; }
+
+    .d-input-group > label {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    .d-num-input,
+    .d-time-input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-family: var(--font-mono);
+      color: var(--text);
+    }
+
+    .d-num-input:focus,
+    .d-time-input:focus {
+      outline: none;
+      border-color: rgba(251,191,36,0.4);
+    }
+
+    /* ---- Task input ---- */
+    .d-task-input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-family: var(--font-body);
+      color: var(--text);
+      margin-top: 12px;
+    }
+
+    .d-task-input::placeholder { color: var(--muted); }
+    .d-task-input:focus { outline: none; border-color: rgba(251,191,36,0.4); }
+
+    /* ---- Buttons ---- */
+    .d-btn-amber {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      color: var(--accent-text);
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font-body);
+      cursor: pointer;
+      text-align: center;
+      transition: opacity 0.15s;
+      margin-top: 14px;
+    }
+
+    .d-btn-amber:hover  { opacity: 0.88; }
+    .d-btn-amber:active { opacity: 0.76; }
+    .d-btn-amber:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .d-btn-amber-sm {
+      background: var(--accent);
+      color: var(--accent-text);
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 12.5px;
+      font-weight: 600;
+      font-family: var(--font-body);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: opacity 0.15s;
+    }
+
+    .d-btn-amber-sm:hover { opacity: 0.88; }
+
+    .d-btn-muted {
+      background: var(--input-bg);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 12.5px;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: border-color 0.12s, color 0.12s;
+    }
+
+    .d-btn-muted:hover { border-color: #3a3d45; color: var(--text); }
+
+    /* ---- Schedule view ---- */
+    .d-day-row {
+      display: flex;
+      gap: 4px;
+      margin-top: 14px;
+    }
+
+    .d-day-btn {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 2px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--font-body);
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      text-align: center;
+      transition: all 0.15s;
+    }
+
+    .d-day-btn--active {
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: var(--accent);
+    }
+
+    .d-active-banner {
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-top: 12px;
+      font-size: 12.5px;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .d-sched-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    /* ---- Blocklist ---- */
+    .d-category {
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .d-category:last-of-type {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .d-cat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 7px;
+    }
+
+    .d-cat-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .d-uncheck-btn {
+      font-size: 11px;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.12s;
+    }
+
+    .d-uncheck-btn:hover { color: var(--text); }
+
+    .d-chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .d-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 6px;
+      padding: 5px 9px;
+      font-size: 11.5px;
+      cursor: pointer;
+      transition: all 0.12s;
+      user-select: none;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .d-chip.d-checked {
+      background: var(--input-bg);
+      border-color: #3a3d45;
+      color: var(--text);
+    }
+
+    .d-chip input[type="checkbox"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 3px;
+      border: 1.5px solid var(--muted);
+      background: transparent;
+      margin: 0;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transition: all 0.12s;
+    }
+
+    .d-chip input[type="checkbox"]:checked {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .d-chip input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 3px;
+      top: 0.5px;
+      width: 4px;
+      height: 7px;
+      border: solid var(--accent-text);
+      border-width: 0 1.5px 1.5px 0;
+      transform: rotate(45deg);
+    }
+
+    .d-chip-remove {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0;
+      margin-left: 1px;
+      line-height: 1;
+      transition: color 0.12s;
+    }
+
+    .d-chip-remove:hover { color: var(--red-soft); }
+
+    /* ---- Custom site row ---- */
+    .d-custom-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .d-custom-input {
+      flex: 1;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 12.5px;
+      font-family: var(--font-body);
+      color: var(--text);
+    }
+
+    .d-custom-input::placeholder { color: var(--muted); }
+    .d-custom-input:focus { outline: none; border-color: rgba(251,191,36,0.4); }
+
+    /* ---- Summary cards ---- */
+    .d-summary-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .d-stat-card {
+      flex: 1;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .d-stat-val {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .d-stat-lbl {
+      font-size: 10.5px;
+      color: var(--muted);
+    }
+
+    /* ---- Session history ---- */
+    .d-session-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .d-session-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .d-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .d-dot--amber { background: var(--accent); }
+    .d-dot--gray  { background: var(--muted); }
+
+    .d-session-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .d-session-task {
+      font-size: 13px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .d-session-task--done {
+      text-decoration: line-through;
+      color: #555;
+    }
+
+    .d-session-meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 1px;
+      font-family: var(--font-mono);
+    }
+
+    .d-badge {
+      font-size: 10.5px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .d-badge--done {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+    }
+
+    .d-badge--early {
+      background: rgba(136,136,136,0.1);
+      color: var(--muted);
+      border: 1px solid rgba(136,136,136,0.2);
+    }
+
+    .d-empty-sessions {
+      font-size: 13px;
+      color: var(--muted);
+      font-style: italic;
+      text-align: center;
+      padding: 24px 0;
+    }
+
+    /* ---- Live session card ---- */
+    .d-live-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      border-radius: 10px;
+      margin-top: 8px;
+    }
+
+    .d-dot--live {
+      background: var(--accent);
+      animation: d-pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes d-pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    .d-live-info { flex: 1; min-width: 0; }
+
+    .d-live-task {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .d-live-time {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      font-family: var(--font-mono);
+    }
+
+    /* ---- Bell toggle ---- */
+    .d-bell-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      gap: 12px;
+    }
+
+    .d-bell-label {
+      font-size: 13.5px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .d-bell-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .d-toggle {
+      position: relative;
+      display: inline-block;
+      width: 42px;
+      height: 24px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .d-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .d-toggle-track {
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      background: var(--border);
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    .d-toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .d-toggle input:checked + .d-toggle-track {
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+    }
+
+    .d-toggle input:checked + .d-toggle-track::after {
+      transform: translateX(18px);
+      background: var(--accent);
+    }
+
+    /* ---- Utility ---- */
+    .d-hidden { display: none !important; }
+    .d-mt-lg  { margin-top: 20px; }
+    .d-sep    { height: 1px; background: var(--border); margin: 16px 0; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="d-header">
+    <div class="d-brand">
+      <h1 class="d-title">FutureSelf</h1>
+      <p class="d-tagline">Tomorrow will thank you.</p>
+    </div>
+    <div class="d-tabs">
+      <button class="d-tab d-tab--active" id="tab-day">Day</button>
+      <button class="d-tab" id="tab-night">Night</button>
+    </div>
+  </div>
+
+  <!-- Two-column layout -->
+  <div class="d-columns">
+
+    <!-- ========== LEFT COLUMN ========== -->
+    <div class="d-left">
+
+      <!-- Focus session card -->
+      <div class="d-card">
+        <div class="d-label">Focus session</div>
+
+        <!-- Mode toggle -->
+        <div class="d-mode-row">
+          <button class="d-pill d-pill--active" id="btn-pomo">Pomodoro</button>
+          <button class="d-pill" id="btn-sched">Schedule</button>
+        </div>
+
+        <!-- Pomodoro view -->
+        <div id="pomo-view">
+          <div class="d-sublabel">Session duration</div>
+          <div class="d-dur-row">
+            <button class="d-dur-pill" data-min="25">25</button>
+            <button class="d-dur-pill d-dur-pill--active" data-min="45">45</button>
+            <button class="d-dur-pill" data-min="50">50</button>
+            <button class="d-dur-pill" data-min="90">90</button>
+          </div>
+
+          <div class="d-input-pair">
+            <div class="d-input-group">
+              <label for="break-dur">Break duration (min)</label>
+              <input type="number" id="break-dur" class="d-num-input" value="5" min="1" max="60">
+            </div>
+            <div class="d-input-group">
+              <label for="long-break-after">Long break after (sessions)</label>
+              <input type="number" id="long-break-after" class="d-num-input" value="4" min="1" max="20">
+            </div>
+          </div>
+
+          <input type="text" id="task-input" class="d-task-input" placeholder="What are you working on?">
+
+          <button class="d-btn-amber" id="btn-start-session">Start focus session</button>
+        </div>
+
+        <!-- Schedule view -->
+        <div id="sched-view" class="d-hidden">
+          <div class="d-input-pair" style="margin-top:10px">
+            <div class="d-input-group">
+              <label for="sched-start">Block starts</label>
+              <input type="time" id="sched-start" class="d-time-input" value="10:00">
+            </div>
+            <div class="d-input-group">
+              <label for="sched-end">Block ends</label>
+              <input type="time" id="sched-end" class="d-time-input" value="13:00">
+            </div>
+          </div>
+
+          <div class="d-day-row">
+            <button class="d-day-btn d-day-btn--active" data-day="1">M</button>
+            <button class="d-day-btn d-day-btn--active" data-day="2">T</button>
+            <button class="d-day-btn d-day-btn--active" data-day="3">W</button>
+            <button class="d-day-btn d-day-btn--active" data-day="4">T</button>
+            <button class="d-day-btn d-day-btn--active" data-day="5">F</button>
+            <button class="d-day-btn" data-day="6">S</button>
+            <button class="d-day-btn" data-day="0">S</button>
+          </div>
+
+          <div id="sched-active-banner" class="d-active-banner d-hidden"></div>
+
+          <div class="d-sched-actions">
+            <button class="d-btn-muted" id="btn-edit-sched">Edit schedule</button>
+            <button class="d-btn-amber-sm" id="btn-save-sched">Schedule saved</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Blocked sites (day) card -->
+      <div class="d-card">
+        <div class="d-label">Blocked sites (day)</div>
+        <div id="day-categories"></div>
+        <div class="d-custom-row">
+          <input type="text" id="custom-site-input" class="d-custom-input" placeholder="e.g. example.com">
+          <button class="d-btn-amber-sm" id="btn-add-site">+ Add</button>
+        </div>
+      </div>
+
+    </div><!-- /d-left -->
+
+    <!-- ========== RIGHT COLUMN ========== -->
+    <div class="d-right">
+      <div class="d-card">
+
+        <!-- Summary cards -->
+        <div class="d-label">Today's sessions</div>
+        <div class="d-summary-row">
+          <div class="d-stat-card">
+            <div class="d-stat-val" id="stat-done">0</div>
+            <div class="d-stat-lbl">Sessions done</div>
+          </div>
+          <div class="d-stat-card">
+            <div class="d-stat-val" id="stat-time">0m</div>
+            <div class="d-stat-lbl">Focus time</div>
+          </div>
+          <div class="d-stat-card">
+            <div class="d-stat-val" id="stat-early">0</div>
+            <div class="d-stat-lbl">Ended early</div>
+          </div>
+        </div>
+
+        <!-- Session history -->
+        <div class="d-label d-mt-lg">Session history</div>
+        <div id="session-list" class="d-session-list">
+          <div class="d-empty-sessions">No sessions yet today.</div>
+        </div>
+
+        <!-- Bell toggle -->
+        <div class="d-bell-row">
+          <div>
+            <div class="d-bell-label">Bell sounds on</div>
+            <div class="d-bell-sub">Plays when session ends + when break ends</div>
+          </div>
+          <label class="d-toggle">
+            <input type="checkbox" id="bell-toggle" checked>
+            <span class="d-toggle-track"></span>
+          </label>
+        </div>
+
+      </div>
+    </div><!-- /d-right -->
+
+  </div><!-- /d-columns -->
+
+  <script src="day-options.js"></script>
+</body>
+</html>
