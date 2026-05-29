@@ -29,7 +29,8 @@
     applyMode("night");
   });
 
-  btnDay.addEventListener("click", function () {
+  btnDay.addEventListener("click", async function () {
+    await chrome.storage.local.set({ futureself_active_tab: "day" });
     window.open(chrome.runtime.getURL('day-options.html'));
   });
 
