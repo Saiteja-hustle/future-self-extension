@@ -110,6 +110,30 @@ async function getAuthStatus() {
   }
 }
 
+function updateBadge() {
+  chrome.storage.local.get([
+    "futureself_pomodoro_active",
+    "futureself_pomodoro_end_ts",
+    "futureself_pomodoro_on_break"
+  ], function (data) {
+    if (data.futureself_pomodoro_active && !data.futureself_pomodoro_on_break) {
+      var minutesRemaining = Math.ceil((data.futureself_pomodoro_end_ts - Date.now()) / 60000);
+      chrome.action.setBadgeText({ text: String(minutesRemaining) });
+      chrome.action.setBadgeBackgroundColor({ color: '#FBBF24' });
+      chrome.action.setBadgeTextColor({ color: '#412402' });
+    } else {
+      chrome.action.setBadgeText({ text: '' });
+    }
+  });
+}
+
+chrome.storage.onChanged.addListener(function (changes) {
+  var watched = ["futureself_pomodoro_active", "futureself_pomodoro_on_break", "futureself_pomodoro_end_ts"];
+  if (watched.some(function (k) { return k in changes; })) {
+    updateBadge();
+  }
+});
+
 // Day Mode navigation handler
 async function handleDayModeNavigation(details) {
   var domain = extractDomain(details.url);
@@ -295,9 +319,17 @@ chrome.alarms.create("nightlyReset", { periodInMinutes: 1 });
 // Periodic auth check every 30 minutes
 chrome.alarms.create("authCheck", { periodInMinutes: 30 });
 
+// Keep Pomodoro badge countdown live
+chrome.alarms.create("futureself_badge_update", { periodInMinutes: 1 });
+
 chrome.alarms.onAlarm.addListener(async function (alarm) {
   if (alarm.name === "authCheck") {
     await getAuthStatus();
+    return;
+  }
+
+  if (alarm.name === "futureself_badge_update") {
+    updateBadge();
     return;
   }
 
@@ -418,3 +450,6 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
     return true;
   }
 });
+
+// Sync badge on service worker startup (after Chrome restarts the service worker)
+updateBadge();
