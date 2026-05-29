@@ -224,15 +224,25 @@ function saveSchedule() {
 
 function startSession() {
   if (s.activeSession) return;
+  var now  = Date.now();
   var task = taskInput.value.trim() || 'Focus session';
   var session = {
     task:        task,
     durationMin: s.pomoDuration,
-    startedAt:   Date.now(),
+    startedAt:   now,
     status:      'running',
   };
   s.activeSession = session;
   chrome.storage.local.set({ [K.activeSession]: session });
+  chrome.storage.local.set({
+    futureself_pomodoro_active:   true,
+    futureself_pomodoro_start_ts: now,
+    futureself_pomodoro_end_ts:   now + s.pomoDuration * 60 * 1000,
+    futureself_pomodoro_duration: s.pomoDuration,
+    futureself_pomodoro_task:     taskInput.value.trim(),
+    futureself_pomodoro_on_break: false,
+    futureself_active_tab:        'day',
+  });
   btnStart.disabled = true;
   startLiveTimer();
 }
@@ -263,11 +273,13 @@ function endSession(early) {
   }
 
   chrome.storage.local.set({
-    [K.activeSession]: null,
-    [K.historyToday]:  s.historyToday,
-    [K.sessionsDone]:  s.sessionsDone,
-    [K.focusTimeMin]:  s.focusTimeMin,
-    [K.endedEarly]:    s.endedEarly,
+    [K.activeSession]:              null,
+    [K.historyToday]:               s.historyToday,
+    [K.sessionsDone]:               s.sessionsDone,
+    [K.focusTimeMin]:               s.focusTimeMin,
+    [K.endedEarly]:                 s.endedEarly,
+    futureself_pomodoro_active:     false,
+    futureself_pomodoro_on_break:   false,
   });
 
   if (liveInterval) { clearInterval(liveInterval); liveInterval = null; }
