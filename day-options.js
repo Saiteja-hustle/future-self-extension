@@ -20,6 +20,14 @@ var K = {
   activeSession: 'futureself_session_active',
 };
 
+var DEFAULT_DAY_BLOCKLIST = [
+  'facebook.com', 'twitter.com', 'instagram.com',
+  'whatsapp.com', 'threads.net', 'linkedin.com',
+  'youtube.com', 'netflix.com', 'twitch.tv',
+  'reddit.com', 'bbc.com', 'cnn.com',
+  'amazon.com', 'flipkart.com'
+];
+
 var DAY_CATEGORIES = {
   'Social media': [
     'facebook.com', 'twitter.com', 'x.com', 'instagram.com',
@@ -102,7 +110,12 @@ async function init() {
   s.schedStart    = saved[K.schedStart]    || '10:00';
   s.schedEnd      = saved[K.schedEnd]      || '13:00';
   s.schedDays     = saved[K.schedDays]     || [1, 2, 3, 4, 5];
-  s.dayBlocklist  = saved[K.dayBlocklist]  || defaultBlocklist();
+  s.dayBlocklist  = (saved[K.dayBlocklist] && saved[K.dayBlocklist].length > 0)
+    ? saved[K.dayBlocklist]
+    : DEFAULT_DAY_BLOCKLIST.slice();
+  if (!saved[K.dayBlocklist] || saved[K.dayBlocklist].length === 0) {
+    await chrome.storage.local.set({ [K.dayBlocklist]: s.dayBlocklist });
+  }
   s.customSites   = saved[K.customSites]   || [];
   s.bellEnabled   = saved[K.bellEnabled] !== false;
   s.sessionsDone  = saved[K.sessionsDone]  || 0;
@@ -222,8 +235,14 @@ function saveSchedule() {
 
 // ---- Pomodoro session ----
 
-function startSession() {
+async function startSession() {
   if (s.activeSession) return;
+  var blData = await chrome.storage.local.get(K.dayBlocklist);
+  var bl = blData[K.dayBlocklist];
+  if (!bl || bl.length === 0) {
+    s.dayBlocklist = DEFAULT_DAY_BLOCKLIST.slice();
+    await chrome.storage.local.set({ [K.dayBlocklist]: s.dayBlocklist });
+  }
   var now  = Date.now();
   var task = taskInput.value.trim() || 'Focus session';
   var session = {
