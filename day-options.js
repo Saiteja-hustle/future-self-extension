@@ -225,14 +225,27 @@ function saveSchedule() {
 function startSession() {
   if (s.activeSession) return;
   var task = taskInput.value.trim() || 'Focus session';
+  var now  = Date.now();
   var session = {
     task:        task,
     durationMin: s.pomoDuration,
-    startedAt:   Date.now(),
+    startedAt:   now,
     status:      'running',
   };
   s.activeSession = session;
-  chrome.storage.local.set({ [K.activeSession]: session });
+  // Persist the page's own session object AND the keys the background
+  // service worker actually reads to block sites. Without these (and
+  // active_tab = "day"), background.js never engages — that's the bug
+  // where starting from this page wrote state the worker never checked.
+  chrome.storage.local.set({
+    [K.activeSession]:            session,
+    futureself_active_tab:        'day',
+    futureself_pomodoro_active:   true,
+    futureself_pomodoro_start_ts: now,
+    futureself_pomodoro_end_ts:   now + s.pomoDuration * 60 * 1000,
+    futureself_pomodoro_task:     task,
+    futureself_pomodoro_break:    s.pomoBreak,
+  });
   btnStart.disabled = true;
   startLiveTimer();
 }
@@ -268,6 +281,11 @@ function endSession(early) {
     [K.sessionsDone]:  s.sessionsDone,
     [K.focusTimeMin]:  s.focusTimeMin,
     [K.endedEarly]:    s.endedEarly,
+    // Release the background worker's blocking gates so ending the session
+    // here actually stops blocking (mirrors what startSession set).
+    futureself_pomodoro_active:   false,
+    futureself_pomodoro_on_break: false,
+    futureself_pomodoro_end_ts:   null,
   });
 
   if (liveInterval) { clearInterval(liveInterval); liveInterval = null; }
