@@ -29,9 +29,8 @@
     applyMode("night");
   });
 
-  btnDay.addEventListener("click", async function () {
-    await chrome.storage.local.set({ futureself_active_tab: "day" });
-    applyMode("day");
+  btnDay.addEventListener("click", function () {
+    window.open(chrome.runtime.getURL('day-options.html'));
   });
 
   // Day Mode auth gate
