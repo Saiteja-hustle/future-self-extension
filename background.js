@@ -333,6 +333,16 @@ chrome.alarms.onAlarm.addListener(async function (alarm) {
     return;
   }
 
+  if (alarm.name === "futureself_pomodoro_end" || alarm.name === "futureself_break_end") {
+    var bellData = await chrome.storage.local.get("futureself_bell_enabled");
+    var bellEnabled = bellData.futureself_bell_enabled;
+    if (bellEnabled === true || bellEnabled === undefined) {
+      var bellTab = await chrome.tabs.create({ url: chrome.runtime.getURL("bell.html"), active: false });
+      setTimeout(function () { chrome.tabs.remove(bellTab.id); }, 2000);
+    }
+    return;
+  }
+
   if (alarm.name !== "nightlyReset") return;
 
   var config = await chrome.storage.local.get([
