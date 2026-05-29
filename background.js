@@ -223,6 +223,11 @@ chrome.webNavigation.onBeforeNavigate.addListener(async function (details) {
   if (details.frameId !== 0) return;
   if (details.url.startsWith("chrome-extension://")) return;
 
+  // If no access token, user is logged out — allow all navigation
+  var tokenData = await chrome.storage.local.get("futureself_access_token");
+  var token = tokenData.futureself_access_token;
+  if (!token) return;
+
   var tabData = await chrome.storage.local.get("futureself_active_tab");
   var activeTab = tabData.futureself_active_tab || "night";
 
