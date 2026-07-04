@@ -1,250 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Future Self</title>
-  <link rel="stylesheet" href="popup.css">
+<meta charset="utf-8"/>
+<title>FutureSelf – Popup</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=Figtree:wght@900&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 380px; height: 600px; overflow: hidden; background: #F5EDD8; font-family: 'DM Sans', sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 32px 24px; }
+  .blob { position: absolute; bottom: -40px; right: -40px; width: 220px; height: 220px; background: #E8622A; opacity: 0.12; border-radius: 40% 60% 55% 45% / 45% 35% 65% 55%; pointer-events: none; z-index: 0; }
+
+  .content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; gap: 8px; }
+
+  .wordmark { font-family: 'Figtree', sans-serif; font-weight: 900; font-size: 42px; color: #0D0D0D; letter-spacing: -0.02em; line-height: 1; }
+  .tagline { font-size: 13px; color: #3D3D3A; margin-bottom: 20px; }
+
+  .mode-stack { display: flex; flex-direction: column; align-items: center; gap: 0; width: 100%; }
+
+  /* Mode pill buttons */
+  .mode-btn { width: 240px; height: 52px; border-radius: 99px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; border: 2px solid #0D0D0D; transition: transform 0.1s, box-shadow 0.1s; }
+
+  .mode-btn.day { background: #F5EDD8; color: #0D0D0D; box-shadow: 3px 3px 0px 0px #0D0D0D; }
+  .mode-btn.day:hover { transform: translate(1px, 1px); box-shadow: 2px 2px 0px 0px #0D0D0D; }
+
+  .mode-btn.night { background: #2DB89A; color: #fff; box-shadow: 3px 3px 0px 0px #0D0D0D; margin-top: 12px; }
+  .mode-btn.night:hover { transform: translate(1px, 1px); box-shadow: 2px 2px 0px 0px #0D0D0D; }
+
+  .divider-label { font-size: 10px; color: #3D3D3A; opacity: 0.45; margin: 6px 0; letter-spacing: 0.05em; }
+
+  .footer-text { position: absolute; bottom: 24px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: #3D3D3A; opacity: 0.5; }
+</style>
 </head>
 <body>
-  <div class="fs-popup">
-    <div class="fs-mode-toggle">
-      <button class="fs-mode-btn" id="btn-mode-night">🌙 Night</button>
-      <button class="fs-mode-btn" id="btn-mode-day">☀️ Day</button>
+  <div class="blob"></div>
+
+  <div class="content">
+    <div class="wordmark">FutureSelf</div>
+    <div class="tagline">tomorrow will thank you.</div>
+
+    <div class="mode-stack">
+      <button class="mode-btn day" type="button">☀️ Day Mode</button>
+      <div class="divider-label">—</div>
+      <button class="mode-btn night" type="button">🌙 Night Mode</button>
     </div>
-
-    <div id="night-panel">
-    <div class="fs-header">
-      <div class="fs-header-row">
-        <h1 class="fs-title">Future Self</h1>
-        <div class="fs-status-badge" id="status-badge">
-          <span class="fs-status-dot" id="status-dot"></span>
-          <span class="fs-status-text" id="status-text"></span>
-        </div>
-      </div>
-      <p class="fs-tagline">Tomorrow will thank you.</p>
-    </div>
-
-    <!-- Not logged in -->
-    <div id="not-logged-in" class="fs-hidden">
-      <p class="fs-setup-msg">Sign in to protect your sleep.</p>
-      <button class="fs-button-primary" id="btn-login">Log in to start</button>
-    </div>
-
-    <!-- Not set up yet -->
-    <div id="setup-prompt" class="fs-hidden">
-      <p class="fs-setup-msg">Your PC doesn't have a bedtime. Now it does.</p>
-      <button class="fs-button-primary" id="btn-setup">Set up your future self</button>
-    </div>
-
-    <!-- Trial expired -->
-    <div id="trial-expired" class="fs-hidden">
-      <div class="fs-trial-expired-card">
-        <p class="fs-trial-expired-headline">Trial ended</p>
-        <p class="fs-trial-expired-body">Want to keep protecting your sleep?</p>
-        <div class="fs-trial-stats">
-          <div class="fs-trial-stat">
-            <span class="fs-trial-stat-value" id="trial-nights">0</span>
-            <span class="fs-trial-stat-label">nights protected</span>
-          </div>
-          <div class="fs-trial-stat">
-            <span class="fs-trial-stat-value" id="trial-blocks">0</span>
-            <span class="fs-trial-stat-label">sites blocked</span>
-          </div>
-        </div>
-        <a class="fs-button-primary" id="btn-upgrade" href="https://futureself.joinhustleclub.com/#pricing" target="_blank">Upgrade &mdash; $19</a>
-      </div>
-    </div>
-
-    <!-- Main dashboard -->
-    <div id="dashboard" class="fs-hidden">
-      <!-- Paid badge -->
-      <div class="fs-paid-badge fs-hidden" id="paid-badge">Lifetime Access</div>
-
-      <div class="fs-microcopy" id="microcopy"></div>
-
-      <div class="fs-schedule" id="schedule-info"></div>
-
-      <!-- Trial banner -->
-      <div class="fs-trial-banner fs-hidden" id="trial-banner">
-        <span class="fs-trial-text" id="trial-text"></span>
-        <a class="fs-trial-upgrade" href="https://futureself.joinhustleclub.com/#pricing" target="_blank">$19 lifetime &rarr;</a>
-      </div>
-
-      <div class="fs-stats">
-        <div class="fs-stat">
-          <span class="fs-stat-value" id="streak-count">0</span>
-          <span class="fs-stat-label" id="streak-label">nights. Tomorrow-you approves.</span>
-        </div>
-        <div class="fs-stat">
-          <span class="fs-stat-value" id="blocked-count">0</span>
-          <span class="fs-stat-label">blocked tonight</span>
-        </div>
-      </div>
-
-      <a class="fs-settings-link" id="settings-link">Settings</a>
-      <a class="fs-logout-link" id="logout-link">Log out</a>
-    </div>
-    </div><!-- /#night-panel -->
-
-    <div id="day-panel" class="fs-hidden">
-
-      <!-- Day: not logged in -->
-      <div id="day-logged-out" class="fs-hidden" style="text-align:center; padding:24px 8px;">
-        <p style="font-size:15px; font-weight:600; color:#e0e5ef; margin-bottom:8px;">Sign in to use Day Mode</p>
-        <p style="font-size:12.5px; color:#7b879e; line-height:1.5; margin-bottom:20px;">Create a free account to access focus sessions and day-time site blocking.</p>
-        <button class="fs-btn-amber" id="btn-day-signin" style="margin-top:0;">Sign In</button>
-      </div>
-
-      <div id="day-main-content">
-
-      <!-- Sub-mode selector -->
-      <div class="fs-submode-toggle">
-        <button class="fs-submode-btn active-submode" id="btn-submode-pomodoro">⏱ Pomodoro</button>
-        <button class="fs-submode-btn" id="btn-submode-schedule">📅 Schedule</button>
-      </div>
-
-      <!-- SECTION A: Pomodoro -->
-      <div id="day-pomodoro-panel">
-
-        <!-- Start form (visible when no session active) -->
-        <div id="day-pomodoro-form">
-          <p class="fs-day-label">Session duration</p>
-          <div class="fs-duration-row">
-            <button class="fs-duration-btn" data-duration="25">25</button>
-            <button class="fs-duration-btn active" data-duration="45">45</button>
-            <button class="fs-duration-btn" data-duration="50">50</button>
-            <button class="fs-duration-btn" data-duration="90">90</button>
-          </div>
-
-          <p class="fs-day-label">Break duration (min)</p>
-          <input class="fs-day-input" type="number" id="input-break-duration" value="10" min="1" max="60" />
-
-          <p class="fs-day-label">Intention</p>
-          <input class="fs-day-input" type="text" id="input-task" placeholder="What are you working on? (optional)" />
-
-          <button class="fs-btn-amber" id="btn-start-session">Start Focus Session</button>
-        </div>
-
-        <!-- Active session view (hidden by default) -->
-        <div id="day-active-session" class="fs-hidden">
-          <div class="fs-session-active-card">
-            <p class="fs-session-active-label">🔥 Focus session active</p>
-            <p class="fs-session-task" id="active-task-label"></p>
-            <span id="popup-session-timer" style="font-size:28px; font-weight:700; color:#FBBF24; font-family:monospace;">00:00</span>
-            <button class="fs-btn-end" id="btn-end-session">End Session</button>
-          </div>
-        </div>
-
-      </div><!-- /#day-pomodoro-panel -->
-
-      <!-- SECTION B: Schedule -->
-      <div id="day-schedule-panel" class="fs-hidden">
-
-        <div class="fs-schedule-row">
-          <label class="fs-day-label">Start</label>
-          <input class="fs-day-input fs-time-input" type="time" id="input-schedule-start" value="10:00" />
-        </div>
-        <div class="fs-schedule-row">
-          <label class="fs-day-label">End</label>
-          <input class="fs-day-input fs-time-input" type="time" id="input-schedule-end" value="13:00" />
-        </div>
-
-        <p class="fs-day-label">Repeat on</p>
-        <div class="day-schedule-row">
-          <label class="fs-day-checkbox"><input type="checkbox" value="mon" checked /> Mon</label>
-          <label class="fs-day-checkbox"><input type="checkbox" value="tue" checked /> Tue</label>
-          <label class="fs-day-checkbox"><input type="checkbox" value="wed" checked /> Wed</label>
-          <label class="fs-day-checkbox"><input type="checkbox" value="thu" checked /> Thu</label>
-          <label class="fs-day-checkbox"><input type="checkbox" value="fri" checked /> Fri</label>
-          <label class="fs-day-checkbox"><input type="checkbox" value="sat" /> Sat</label>
-          <label class="fs-day-checkbox"><input type="checkbox" value="sun" /> Sun</label>
-        </div>
-
-        <div class="fs-schedule-enable-row">
-          <label class="fs-day-label" for="toggle-schedule-enabled">Enable Schedule Block</label>
-          <input type="checkbox" id="toggle-schedule-enabled" />
-        </div>
-        <p class="fs-schedule-status" id="schedule-status-text"></p>
-
-      </div><!-- /#day-schedule-panel -->
-
-      <!-- Day Block List -->
-      <div class="fs-day-blocklist-section">
-        <div class="fs-day-blocklist-header" id="day-blocklist-toggle">
-          <span>Blocked Sites (Day)</span>
-          <span class="fs-blocklist-arrow" id="day-blocklist-arrow">▶</span>
-        </div>
-        <div id="day-blocklist-content" class="fs-hidden">
-
-          <div class="fs-blocklist-category">
-            <div class="fs-blocklist-cat-header">
-              <span class="fs-blocklist-cat-label">Social Media</span>
-              <button class="fs-check-toggle-btn" data-cat="social">Uncheck all</button>
-            </div>
-            <div class="fs-blocklist-items" data-cat="social">
-              <label class="fs-blocklist-item"><input type="checkbox" value="whatsapp.com" /> whatsapp.com</label>
-              <label class="fs-blocklist-item"><input type="checkbox" value="instagram.com" /> instagram.com</label>
-              <label class="fs-blocklist-item"><input type="checkbox" value="facebook.com" /> facebook.com</label>
-              <label class="fs-blocklist-item"><input type="checkbox" value="twitter.com" /> twitter.com</label>
-              <label class="fs-blocklist-item"><input type="checkbox" value="threads.net" /> threads.net</label>
-              <label class="fs-blocklist-item"><input type="checkbox" value="linkedin.com" /> linkedin.com</label>
-            </div>
-          </div>
-
-          <div class="fs-blocklist-category">
-            <div class="fs-blocklist-cat-header">
-              <span class="fs-blocklist-cat-label">Video &amp; Streaming</span>
-              <button class="fs-check-toggle-btn" data-cat="video">Uncheck all</button>
-            </div>
-            <div class="fs-blocklist-items" data-cat="video">
-              <label class="fs-blocklist-item"><input type="checkbox" value="youtube.com" /> youtube.com</label>
-              <label class="fs-blocklist-item"><input type="checkbox" value="twitch.tv" /> twitch.tv</label>
-              <label class="fs-blocklist-item"><input type="checkbox" value="netflix.com" /> netflix.com</label>
-              <label class="fs-blocklist-item"><input type="checkbox" value="primevideo.com" /> primevideo.com</label>
-            </div>
-          </div>
-
-          <div class="fs-blocklist-category">
-            <div class="fs-blocklist-cat-header">
-              <span class="fs-blocklist-cat-label">News &amp; Rabbit Holes</span>
-              <button class="fs-check-toggle-btn" data-cat="news">Uncheck all</button>
-            </div>
-            <div class="fs-blocklist-items" data-cat="news">
-              <label class="fs-blocklist-item"><input type="checkbox" value="reddit.com" /> reddit.com</label>
-              <label class="fs-blocklist-item"><input type="checkbox" value="news.ycombinator.com" /> news.ycombinator.com</label>
-              <label class="fs-blocklist-item"><input type="checkbox" value="bbc.com" /> bbc.com</label>
-              <label class="fs-blocklist-item"><input type="checkbox" value="cnn.com" /> cnn.com</label>
-            </div>
-          </div>
-
-          <div class="fs-blocklist-category">
-            <div class="fs-blocklist-cat-header">
-              <span class="fs-blocklist-cat-label">Shopping</span>
-              <button class="fs-check-toggle-btn" data-cat="shopping">Uncheck all</button>
-            </div>
-            <div class="fs-blocklist-items" data-cat="shopping">
-              <label class="fs-blocklist-item"><input type="checkbox" value="amazon.com" /> amazon.com</label>
-              <label class="fs-blocklist-item"><input type="checkbox" value="flipkart.com" /> flipkart.com</label>
-              <label class="fs-blocklist-item"><input type="checkbox" value="ebay.com" /> ebay.com</label>
-              <label class="fs-blocklist-item"><input type="checkbox" value="myntra.com" /> myntra.com</label>
-            </div>
-          </div>
-
-          <div id="day-custom-domains-list"></div>
-
-          <div class="fs-day-custom-row">
-            <input type="text" class="fs-day-input" id="input-day-custom-domain" placeholder="e.g. example.com" />
-            <button class="fs-btn-add-domain" id="btn-add-day-domain">Add</button>
-          </div>
-
-        </div><!-- /#day-blocklist-content -->
-      </div><!-- /.fs-day-blocklist-section -->
-
-      </div><!-- /#day-main-content -->
-    </div><!-- /#day-panel -->
   </div>
-  <script src="supabase-client.js"></script>
-  <script src="popup.js"></script>
+
+  <span class="footer-text">Tomorrow will thank you.</span>
 </body>
 </html>
