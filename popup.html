@@ -1,23 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Future Self</title>
-  <link rel="stylesheet" href="popup.css">
+<meta charset="utf-8"/>
+<title>FutureSelf</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=Figtree:wght@900&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 380px; height: 600px; overflow: hidden; background: #F5EDD8; font-family: 'DM Sans', sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 32px 24px; }
+  .blob { position: absolute; bottom: -40px; right: -40px; width: 220px; height: 220px; background: #E8622A; opacity: 0.12; border-radius: 40% 60% 55% 45% / 45% 35% 65% 55%; pointer-events: none; z-index: 0; }
+  .content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; gap: 8px; }
+  .wordmark { font-family: 'Figtree', sans-serif; font-weight: 900; font-size: 42px; color: #0D0D0D; letter-spacing: -0.02em; line-height: 1; }
+  .tagline { font-size: 13px; color: #3D3D3A; margin-bottom: 20px; }
+  .mode-stack { display: flex; flex-direction: column; align-items: center; gap: 0; width: 100%; }
+  .mode-btn { width: 240px; height: 52px; border-radius: 99px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; border: 2px solid #0D0D0D; transition: transform 0.1s, box-shadow 0.1s; }
+  .mode-btn.day { background: #F5EDD8; color: #0D0D0D; box-shadow: 3px 3px 0px 0px #0D0D0D; }
+  .mode-btn.day:hover { transform: translate(1px, 1px); box-shadow: 2px 2px 0px 0px #0D0D0D; }
+  .mode-btn.night { background: #2DB89A; color: #fff; box-shadow: 3px 3px 0px 0px #0D0D0D; margin-top: 12px; }
+  .mode-btn.night:hover { transform: translate(1px, 1px); box-shadow: 2px 2px 0px 0px #0D0D0D; }
+  .divider-label { font-size: 10px; color: #3D3D3A; opacity: 0.45; margin: 6px 0; letter-spacing: 0.05em; }
+  .footer-text { position: absolute; bottom: 24px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: #3D3D3A; opacity: 0.5; }
+</style>
 </head>
 <body>
-  <div class="fs-popup">
-    <div class="fs-header">
-      <h1 class="fs-title">FutureSelf</h1>
-      <p class="fs-tagline">Tomorrow will thank you.</p>
-    </div>
-    <div class="fs-mode-list">
-      <button class="fs-mode-btn fs-btn-day" id="btn-open-day">☀️ Day Mode</button>
-      <button class="fs-mode-btn fs-btn-night" id="btn-open-night">🌙 Night Mode</button>
+  <div class="blob"></div>
+  <div class="content">
+    <div class="wordmark">FutureSelf</div>
+    <div class="tagline">tomorrow will thank you.</div>
+    <div class="mode-stack">
+      <button class="mode-btn day" id="btn-day" type="button">☀️ Day Mode</button>
+      <div class="divider-label">—</div>
+      <button class="mode-btn night" id="btn-night" type="button">🌙 Night Mode</button>
     </div>
   </div>
-  <script src="supabase-client.js"></script>
+  <span class="footer-text">Tomorrow will thank you.</span>
   <script src="popup.js"></script>
 </body>
 </html>

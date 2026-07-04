@@ -20,6 +20,8 @@
   .field input { background: #F3EACF; border: 2px solid #0D0D0D; border-radius: 8px; padding: 10px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #0D0D0D; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
   .field input:focus { border-color: #E8622A; box-shadow: 0 0 0 2px rgba(232,98,42,0.2); }
   .field input::placeholder { color: #aaa; }
+  .trial-note { font-size: 11px; color: #3D3D3A; text-align: center; }
+  .trial-note strong { color: #0D0D0D; }
   .submit-btn { background: #E8622A; color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; padding: 13px; border: 2px solid #0D0D0D; border-radius: 10px; box-shadow: 4px 4px 0px 0px #0D0D0D; cursor: pointer; width: 100%; transition: transform 0.1s, box-shadow 0.1s; }
   .submit-btn:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0px 0px #0D0D0D; }
   .submit-btn:active { transform: translate(4px, 4px); box-shadow: none; }
@@ -45,8 +47,9 @@
       <label for="password">Password</label>
       <input type="password" id="password" placeholder="Min 6 characters"/>
     </div>
-    <button class="submit-btn" type="button">Start Free Trial — 3 Days Free →</button>
+    <button class="submit-btn" id="btn-signup" type="button">Start Free Trial — 3 Days Free →</button>
     <div class="footer-tag">Tomorrow will thank you.</div>
   </div>
+  <script src="login.js"></script>
 </body>
 </html>
