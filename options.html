@@ -8,9 +8,15 @@
 </head>
 <body>
   <div class="fs-container">
-    <div class="fs-header">
-      <h1 class="fs-title">Future Self</h1>
-      <p class="fs-tagline">Configure your sleep protection.</p>
+    <div class="fs-header" style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <h1 class="fs-title">Future Self</h1>
+        <p class="fs-tagline">Configure your sleep protection.</p>
+      </div>
+      <div class="fs-tabs" style="display:flex;gap:3px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3px;">
+        <button class="fs-tab btn-mode-nav" data-target="day" style="border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-muted);font-family:var(--font-body);">Day</button>
+        <button class="fs-tab btn-mode-nav active" data-target="night" style="border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;background:var(--green);color:#0B0E14;font-family:var(--font-body);">Night</button>
+      </div>
     </div>
 
     <!-- Sleep Schedule -->
@@ -103,6 +109,12 @@
     </div>
   </div>
 
+  <!-- Logout -->
+  <div style="text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">
+    <a class="fs-settings-link" id="btn-logout" style="color:#e87272;text-decoration:none;font-size:13px;cursor:pointer;">Log out</a>
+  </div>
+
+  <script src="supabase-client.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

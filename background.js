@@ -115,6 +115,13 @@ async function handleDayModeNavigation(details) {
   var domain = extractDomain(details.url);
   if (!domain) return;
 
+  // Check auth status before blocking
+  var authStatus = await getAuthStatus();
+  if (!authStatus.isLoggedIn) {
+    chrome.tabs.update(details.tabId, { url: chrome.runtime.getURL("login.html") });
+    return;
+  }
+
   var now = Date.now();
   var nowDate = new Date(now);
 
@@ -201,7 +208,8 @@ async function handleDayModeNavigation(details) {
   var startMinutes = timeToMinutes(dayData.futureself_schedule_start || "10:00");
   var endMinutes = timeToMinutes(dayData.futureself_schedule_end || "13:00");
   if (nowMinutes < startMinutes || nowMinutes >= endMinutes) {
-    console.log("[FutureSelf Day] Outside schedule window:", nowMinutes, "vs", startMinutes, "-", endMinutes);
+    console.log("[FutureSelf Day] Outside schedule window, disabling schedule block");
+    await chrome.storage.local.set({ futureself_schedule_enabled: false });
     return;
   }
 
@@ -229,7 +237,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(async function (details) {
   if (!token) return;
 
   var tabData = await chrome.storage.local.get("futureself_active_tab");
-  var activeTab = tabData.futureself_active_tab || "night";
+  var activeTab = tabData.futureself_active_tab || "day";
 
   // ── NIGHT MODE ────────────────────────────────────────────────
   if (activeTab === "night") {
@@ -416,5 +424,12 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
       sendResponse({ success: true });
     });
     return true;
+  }
+});
+
+// Listen for day blocklist changes so in-memory state stays current
+chrome.storage.onChanged.addListener(function (changes, area) {
+  if (area === 'local' && changes.futureself_day_blocklist) {
+    console.log('[FutureSelf] Day blocklist updated (', changes.futureself_day_blocklist.newValue.length, 'domains)');
   }
 });

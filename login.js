@@ -4,7 +4,7 @@
   // If a Supabase session already exists, skip login and go to options
   chrome.storage.local.get("supabase_session", function (data) {
     if (data && data.supabase_session) {
-      window.location.href = chrome.runtime.getURL("options.html");
+      window.location.href = chrome.runtime.getURL("day-options.html");
     }
   });
 
@@ -56,7 +56,7 @@
 
       if (data.access_token) {
         // Signed up and logged in immediately
-        window.location.href = chrome.runtime.getURL("options.html");
+        window.location.href = chrome.runtime.getURL("day-options.html");
       } else {
         // Check if Supabase silently indicated a duplicate email (200 OK but no token)
         var silentErrMsg = data.error_description || data.msg || data.message || "";
@@ -103,7 +103,7 @@
       var status = await SupabaseAuth.checkAuthStatus();
 
       if (status.isPaid || status.isTrialActive) {
-        window.location.href = chrome.runtime.getURL("options.html");
+        window.location.href = chrome.runtime.getURL("day-options.html");
       } else {
         // Trial expired, not paid — show upgrade
         window.location.href = chrome.runtime.getURL("upgrade.html");

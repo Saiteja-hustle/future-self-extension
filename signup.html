@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>FutureSelf – Log In</title>
+<title>FutureSelf – Sign Up</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=Figtree:wght@900&display=swap" rel="stylesheet"/>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,9 +20,6 @@
   .field input { background: #F3EACF; border: 2px solid #0D0D0D; border-radius: 8px; padding: 10px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #0D0D0D; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
   .field input:focus { border-color: #E8622A; box-shadow: 0 0 0 2px rgba(232,98,42,0.2); }
   .field input::placeholder { color: #aaa; }
-  .row { display: flex; justify-content: space-between; align-items: flex-end; }
-  .forgot { font-size: 11px; color: #3D3D3A; text-decoration: none; }
-  .forgot:hover { color: #E8622A; }
   .submit-btn { background: #E8622A; color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; padding: 13px; border: 2px solid #0D0D0D; border-radius: 10px; box-shadow: 4px 4px 0px 0px #0D0D0D; cursor: pointer; width: 100%; transition: transform 0.1s, box-shadow 0.1s; }
   .submit-btn:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0px 0px #0D0D0D; }
   .submit-btn:active { transform: translate(4px, 4px); box-shadow: none; }
@@ -37,21 +34,18 @@
       <div class="tagline" style="margin-top:4px;">Your PC doesn't have a bedtime. Now it does.</div>
     </div>
     <div class="tabs">
-      <button class="tab" id="tab-signup">Start Free Trial</button>
-      <button class="tab active" id="tab-login">Log In</button>
+      <button class="tab active" id="tab-signup">Start Free Trial</button>
+      <button class="tab" id="tab-login">Log In</button>
     </div>
     <div class="field">
       <label for="email">Email</label>
       <input type="email" id="email" placeholder="you@example.com"/>
     </div>
     <div class="field">
-      <div class="row">
-        <label for="password">Password</label>
-        <a href="#" class="forgot">Forgot Password?</a>
-      </div>
-      <input type="password" id="password" placeholder="Your password"/>
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Min 6 characters"/>
     </div>
-    <button class="submit-btn" type="button">Log In →</button>
+    <button class="submit-btn" type="button">Start Free Trial — 3 Days Free →</button>
     <div class="footer-tag">Tomorrow will thank you.</div>
   </div>
 </body>

@@ -76,6 +76,20 @@ var customDomainCategorySelect = document.getElementById("custom-domain-category
 init();
 
 async function init() {
+  // Gate: if no token, show login prompt instead of settings UI
+  var tokenResult = await chrome.storage.local.get("futureself_access_token");
+  if (!tokenResult.futureself_access_token) {
+    document.body.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;padding:40px;text-align:center;">' +
+      '<h1 style="font-family:var(--font-display);font-size:22px;color:var(--text);margin-bottom:12px;">FutureSelf</h1>' +
+      '<p style="color:var(--text-sec);font-size:14px;margin-bottom:24px;">Sign up to access FutureSelf</p>' +
+      '<button id="btn-goto-login" class="fs-button-primary" style="width:auto;padding:12px 40px;">Log in / Sign up</button>' +
+      '</div>';
+    document.getElementById("btn-goto-login").addEventListener("click", function () {
+      chrome.tabs.create({ url: chrome.runtime.getURL("login.html") });
+    });
+    return;
+  }
+
   var saved = await chrome.storage.local.get([
     "futureself_wakeTime", "futureself_sleepHours", "futureself_buffer",
     "futureself_blocklist", "futureself_customDomains", "futureself_setupComplete",
@@ -168,6 +182,25 @@ async function init() {
     if (e.key === "Enter") saveCategory();
     if (e.key === "Escape") hideCategoryForm();
   });
+
+  // Day/Night mode navigation
+  document.querySelectorAll(".btn-mode-nav").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var target = btn.dataset.target;
+      if (target === "day") {
+        chrome.tabs.create({ url: chrome.runtime.getURL("day-options.html") });
+      }
+    });
+  });
+
+  // Logout
+  var logoutBtn = document.getElementById("btn-logout");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async function () {
+      await SupabaseAuth.signOut();
+      window.location.href = chrome.runtime.getURL("login.html");
+    });
+  }
 
   // Activation code
   if (activationInput) {

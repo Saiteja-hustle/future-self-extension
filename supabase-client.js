@@ -96,7 +96,19 @@ var SupabaseAuth = {
       "futureself_refresh_token",
       "futureself_token_expires_at",
       "futureself_user_email",
-      "futureself_auth_status"
+      "futureself_auth_status",
+      "futureself_auth_status_cached_at",
+      "futureself_freeForever",
+      "futureself_isPaid",
+      "futureself_trial_cache",
+      "futureself_trial_cache_ts",
+      "futureself_schedule_enabled",
+      "futureself_setupComplete",
+      "futureself_wakeTime",
+      "futureself_blockStartTime",
+      "futureself_schedule_start",
+      "futureself_schedule_end",
+      "futureself_schedule_days"
     ]);
   },
 
@@ -199,16 +211,20 @@ var SupabaseAuth = {
         email: tokens.futureself_user_email || null
       };
 
-      // Cache status locally for offline use
-      await chrome.storage.local.set({ futureself_auth_status: status });
+      // Cache status locally for offline use (5-minute TTL)
+      var cacheTtl = 5 * 60 * 1000;
+      await chrome.storage.local.set({ futureself_auth_status: status, futureself_auth_status_cached_at: Date.now() });
       return status;
 
     } catch (e) {
-      // Offline or error — use cached status
-      var cached = await chrome.storage.local.get("futureself_auth_status");
+      // Offline or error — use cached status if still fresh
+      var cached = await chrome.storage.local.get(["futureself_auth_status", "futureself_auth_status_cached_at"]);
       if (cached.futureself_auth_status) {
-        cached.futureself_auth_status.isPaid = cached.futureself_auth_status.isPaid || hasForeverAccess;
-        return cached.futureself_auth_status;
+        var cachedAt = cached.futureself_auth_status_cached_at || 0;
+        if (Date.now() - cachedAt < 5 * 60 * 1000) {
+          cached.futureself_auth_status.isPaid = cached.futureself_auth_status.isPaid || hasForeverAccess;
+          return cached.futureself_auth_status;
+        }
       }
       return {
         isLoggedIn: true,

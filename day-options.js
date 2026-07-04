@@ -91,6 +91,20 @@ var tabNight      = document.getElementById('tab-night');
 init();
 
 async function init() {
+  // Gate: if no token, show login prompt instead of settings UI
+  var tokenResult = await chrome.storage.local.get("futureself_access_token");
+  if (!tokenResult.futureself_access_token) {
+    document.body.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;padding:40px;text-align:center;">' +
+      '<h1 style="font-family:Clash Display,sans-serif;font-size:22px;color:#f0f0f0;margin-bottom:12px;">FutureSelf</h1>' +
+      '<p style="color:#888;font-size:14px;margin-bottom:24px;">Sign up to access FutureSelf</p>' +
+      '<button id="btn-goto-login" style="display:inline-block;padding:12px 40px;background:#FBBF24;color:#412402;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Log in / Sign up</button>' +
+      '</div>';
+    document.getElementById("btn-goto-login").addEventListener("click", function () {
+      chrome.tabs.create({ url: chrome.runtime.getURL("login.html") });
+    });
+    return;
+  }
+
   var keys = Object.values(K);
   var saved = await chrome.storage.local.get(keys);
 
@@ -101,9 +115,28 @@ async function init() {
   s.pomoTask      = saved[K.pomoTask]      || '';
   s.schedStart    = saved[K.schedStart]    || '10:00';
   s.schedEnd      = saved[K.schedEnd]      || '13:00';
-  s.schedDays     = saved[K.schedDays]     || [1, 2, 3, 4, 5];
+  s.schedDays     = (saved[K.schedDays] && saved[K.schedDays].length > 0) ? saved[K.schedDays] : [1, 2, 3, 4, 5];
   s.dayBlocklist  = saved[K.dayBlocklist]  || defaultBlocklist();
   s.customSites   = saved[K.customSites]   || [];
+  // Merge user-added sites into DAY_CATEGORIES so they render under the right category
+  if (s.customSites.length > 0) {
+    var migrated = [];
+    s.customSites.forEach(function(entry) {
+      if (typeof entry === 'string') {
+        // Legacy flat string — treat as Custom category
+        migrated.push({ domain: entry, category: 'Custom' });
+      } else if (entry.domain && entry.category) {
+        if (entry.category !== 'Custom' && DAY_CATEGORIES[entry.category] &&
+            DAY_CATEGORIES[entry.category].indexOf(entry.domain) === -1) {
+          DAY_CATEGORIES[entry.category].push(entry.domain);
+        }
+        migrated.push(entry);
+      }
+    });
+    s.customSites = migrated;
+    // Persist migrated format
+    chrome.storage.local.set({ [K.customSites]: s.customSites });
+  }
   s.bellEnabled   = saved[K.bellEnabled] !== false;
   s.sessionsDone  = saved[K.sessionsDone]  || 0;
   s.focusTimeMin  = saved[K.focusTimeMin]  || 0;
@@ -179,7 +212,14 @@ function applyScheduleInputs() {
   });
 }
 
-function checkScheduleActive() {
+async function checkScheduleActive() {
+  var stored = await chrome.storage.local.get('futureself_schedule_enabled');
+  console.log('[FutureSelf] checkScheduleActive — futureself_schedule_enabled =', stored.futureself_schedule_enabled);
+  if (!stored.futureself_schedule_enabled) {
+    schedBanner.classList.add('d-hidden');
+    return;
+  }
+
   var now      = new Date();
   var todayDay = now.getDay();
 
@@ -210,9 +250,11 @@ function saveSchedule() {
   s.schedStart = schedStartIn.value;
   s.schedEnd   = schedEndIn.value;
   chrome.storage.local.set({
-    [K.schedStart]: s.schedStart,
-    [K.schedEnd]:   s.schedEnd,
-    [K.schedDays]:  s.schedDays,
+    [K.schedStart]:               s.schedStart,
+    [K.schedEnd]:                 s.schedEnd,
+    [K.schedDays]:                s.schedDays,
+    futureself_schedule_enabled:  true,
+    futureself_active_tab:        'day',
   });
   checkScheduleActive();
   var orig = btnSaveSched.textContent;
@@ -224,15 +266,39 @@ function saveSchedule() {
 
 function startSession() {
   if (s.activeSession) return;
+  chrome.storage.local.get("futureself_access_token", function (result) {
+    if (!result.futureself_access_token) {
+      alert("Please log in to use Day Mode");
+      chrome.tabs.create({ url: chrome.runtime.getURL("login.html") });
+      return;
+    }
+    doStartSession();
+  });
+}
+
+function doStartSession() {
   var task = taskInput.value.trim() || 'Focus session';
+  var now  = Date.now();
   var session = {
     task:        task,
     durationMin: s.pomoDuration,
-    startedAt:   Date.now(),
+    startedAt:   now,
     status:      'running',
   };
   s.activeSession = session;
-  chrome.storage.local.set({ [K.activeSession]: session });
+  // Persist the page's own session object AND the keys the background
+  // service worker actually reads to block sites. Without these (and
+  // active_tab = "day"), background.js never engages — that's the bug
+  // where starting from this page wrote state the worker never checked.
+  chrome.storage.local.set({
+    [K.activeSession]:            session,
+    futureself_active_tab:        'day',
+    futureself_pomodoro_active:   true,
+    futureself_pomodoro_start_ts: now,
+    futureself_pomodoro_end_ts:   now + s.pomoDuration * 60 * 1000,
+    futureself_pomodoro_task:     task,
+    futureself_pomodoro_break:    s.pomoBreak,
+  });
   btnStart.disabled = true;
   startLiveTimer();
 }
@@ -268,6 +334,11 @@ function endSession(early) {
     [K.sessionsDone]:  s.sessionsDone,
     [K.focusTimeMin]:  s.focusTimeMin,
     [K.endedEarly]:    s.endedEarly,
+    // Release the background worker's blocking gates so ending the session
+    // here actually stops blocking (mirrors what startSession set).
+    futureself_pomodoro_active:   false,
+    futureself_pomodoro_on_break: false,
+    futureself_pomodoro_end_ts:   null,
   });
 
   if (liveInterval) { clearInterval(liveInterval); liveInterval = null; }
@@ -315,8 +386,12 @@ function renderBlocklist() {
     dayCategDiv.appendChild(makeCategoryBlock(catName, sites, false));
   });
 
-  if (s.customSites.length > 0) {
-    dayCategDiv.appendChild(makeCategoryBlock('Custom', s.customSites, true));
+  // Show only sites with Custom or no category in the Custom section
+  var customSitesToRender = s.customSites
+    .filter(function(e) { return typeof e === 'object' ? e.category === 'Custom' : true; })
+    .map(function(e) { return typeof e === 'string' ? e : e.domain; });
+  if (customSitesToRender.length > 0) {
+    dayCategDiv.appendChild(makeCategoryBlock('Custom', customSitesToRender, true));
   }
 }
 
@@ -385,18 +460,16 @@ function makeChip(domain, removable) {
 }
 
 function toggleDomain(domain, checked) {
-  var idx = s.dayBlocklist.indexOf(domain);
-  if (checked && idx === -1)  s.dayBlocklist.push(domain);
-  if (!checked && idx !== -1) s.dayBlocklist.splice(idx, 1);
-  saveKey(K.dayBlocklist, s.dayBlocklist);
+  if (!domain || typeof domain !== 'string') return;
+  // Remove domain from list (always, to avoid duplicates)
+  s.dayBlocklist = s.dayBlocklist.filter(function(d) { return d !== domain; });
+  if (checked) s.dayBlocklist.push(domain);
+  chrome.storage.local.set({ [K.dayBlocklist]: s.dayBlocklist });
 }
 
 function uncheckCategory(sites) {
-  sites.forEach(function(domain) {
-    var idx = s.dayBlocklist.indexOf(domain);
-    if (idx !== -1) s.dayBlocklist.splice(idx, 1);
-  });
-  saveKey(K.dayBlocklist, s.dayBlocklist);
+  s.dayBlocklist = s.dayBlocklist.filter(function(d) { return sites.indexOf(d) === -1; });
+  chrome.storage.local.set({ [K.dayBlocklist]: s.dayBlocklist });
   renderBlocklist();
 }
 
@@ -406,17 +479,38 @@ function addCustomSite() {
     .replace(/^https?:\/\//i, '')
     .replace(/\/.*$/, '');
   if (!raw) return;
-  if (s.customSites.indexOf(raw) !== -1) { customSiteIn.value = ''; return; }
-  s.customSites.push(raw);
+
+  var catSelect = document.getElementById('custom-site-category');
+  var selectedCat = catSelect ? catSelect.value : 'custom';
+  var catName = selectedCat === 'custom' ? 'Custom' : selectedCat;
+
+  // Check if domain already exists (any category)
+  var exists = s.customSites.some(function(e) {
+    return (typeof e === 'string' ? e : e.domain) === raw;
+  });
+  if (exists) { customSiteIn.value = ''; return; }
+
+  s.customSites.push({ domain: raw, category: catName });
+  // Add to DAY_CATEGORIES so it renders under the right category
+  if (DAY_CATEGORIES[catName] && DAY_CATEGORIES[catName].indexOf(raw) === -1) {
+    DAY_CATEGORIES[catName].push(raw);
+  }
   if (s.dayBlocklist.indexOf(raw) === -1) s.dayBlocklist.push(raw);
   chrome.storage.local.set({ [K.customSites]: s.customSites, [K.dayBlocklist]: s.dayBlocklist });
   customSiteIn.value = '';
+  if (catSelect) catSelect.value = 'custom';
   renderBlocklist();
 }
 
 function removeCustomSite(domain) {
-  s.customSites  = s.customSites.filter(function(d)  { return d !== domain; });
+  s.customSites = s.customSites.filter(function(d) {
+    return (typeof d === 'string' ? d : d.domain) !== domain;
+  });
   s.dayBlocklist = s.dayBlocklist.filter(function(d) { return d !== domain; });
+  // Remove from DAY_CATEGORIES too
+  for (var cat in DAY_CATEGORIES) {
+    DAY_CATEGORIES[cat] = DAY_CATEGORIES[cat].filter(function(d) { return d !== domain; });
+  }
   chrome.storage.local.set({ [K.customSites]: s.customSites, [K.dayBlocklist]: s.dayBlocklist });
   renderBlocklist();
 }
@@ -474,7 +568,7 @@ function makeSessionItem(session) {
 
   var taskEl = document.createElement('div');
   taskEl.className = 'd-session-task' + (session.completed ? ' d-session-task--done' : '');
-  taskEl.textContent = session.task;
+  taskEl.textContent = session.task || 'Focus session';
   info.appendChild(taskEl);
 
   var meta = document.createElement('div');
@@ -509,7 +603,7 @@ function makeLiveCard() {
 
   var taskEl = document.createElement('div');
   taskEl.className   = 'd-live-task';
-  taskEl.textContent = s.activeSession.task;
+  taskEl.textContent = s.activeSession.task || 'Focus session';
   info.appendChild(taskEl);
 
   var timeEl = document.createElement('div');
@@ -616,4 +710,29 @@ function bindAll() {
     s.bellEnabled = bellToggle.checked;
     saveKey(K.bellEnabled, s.bellEnabled);
   });
+
+  chrome.storage.onChanged.addListener(function(changes, area) {
+    if (area !== 'local') return;
+    if (changes.futureself_schedule_enabled) {
+      console.log('[FutureSelf] storage.onChanged — futureself_schedule_enabled old:', changes.futureself_schedule_enabled.oldValue, 'new:', changes.futureself_schedule_enabled.newValue);
+    }
+    if (changes.futureself_pomodoro_active &&
+        changes.futureself_pomodoro_active.newValue === false &&
+        s.activeSession) {
+      endSession(true);
+    }
+    if (changes.futureself_schedule_enabled &&
+        changes.futureself_schedule_enabled.newValue === false) {
+      checkScheduleActive().catch(console.error);
+    }
+  });
+
+  // Logout
+  var logoutBtn = document.getElementById('btn-logout-day');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async function () {
+      await SupabaseAuth.signOut();
+      window.location.href = chrome.runtime.getURL('login.html');
+    });
+  }
 }

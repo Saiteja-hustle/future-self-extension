@@ -805,51 +805,203 @@
     document.body.classList.add("day-mode");
 
     var dayData = await chrome.storage.local.get([
-      "futureself_pomodoro_task", "futureself_pomodoro_end_ts"
+      "futureself_pomodoro_task",
+      "futureself_pomodoro_end_ts",
+      "futureself_pomodoro_start_ts",
+      "futureself_pomodoro_session_count",
+      "futureself_schedule_end"
     ]);
-    var task = dayData.futureself_pomodoro_task || "";
-    var endTs = dayData.futureself_pomodoro_end_ts || 0;
-    var remainingMin = Math.max(0, Math.round((endTs - Date.now()) / 60000));
 
-    var DAY_QUESTIONS = [
-      "You said you were working on: [task]. Is [site] part of that?",
-      "[site] during focus time? Your future self is watching. And judging. (Lovingly.)",
-      "This is your focus session talking. [site] will still be there in [X] minutes.",
-      "Quick check: is [site] going to help you finish what you started?",
-      "You blocked [site] for a reason. That reason hasn't changed in the last 30 seconds."
-    ];
+    var task         = dayData.futureself_pomodoro_task || "";
+    var endTs        = dayData.futureself_pomodoro_end_ts || 0;
+    var startTs      = dayData.futureself_pomodoro_start_ts || 0;
+    var sessionCount = Math.min(dayData.futureself_pomodoro_session_count || 0, 3);
+    var schedEnd     = dayData.futureself_schedule_end || "13:00";
 
-    var q = DAY_QUESTIONS[Math.floor(Math.random() * DAY_QUESTIONS.length)];
-    q = q.replace(/\[site\]/g, site)
-         .replace(/\[task\]/g, task || "your task")
-         .replace(/\[X\]/g, remainingMin);
+    var nowMs        = Date.now();
+    var remainingMin = endTs > 0 ? Math.max(0, Math.round((endTs - nowMs) / 60000)) : 0;
+    var elapsedMin   = startTs > 0 ? Math.max(0, Math.round((nowMs - startTs) / 60000)) : 0;
 
-    showScreen("screen-question");
-    document.getElementById("mode-badge").textContent = "Focus Mode";
-    document.getElementById("site-name").textContent = site.toLowerCase();
-    document.getElementById("time-notice").textContent =
-      reason === "pomodoro" ? "Focus Session Active" : "Schedule Block Active";
-    document.getElementById("question-text").textContent = q;
+    // ── Helpers ────────────────────────────────
 
-    var btnBack = document.getElementById("q-sleep");
-    var btnEnd  = document.getElementById("q-override");
-    var btnBreathe = document.getElementById("q-breathe");
+    function fillDayVars(text) {
+      return text
+        .replace(/\[site\]/g, site)
+        .replace(/\[task\]/g, task || "your task")
+        .replace(/\[X\]/g, remainingMin)
+        .replace(/\[remaining\]/g, remainingMin)
+        .replace(/\[elapsed\]/g, elapsedMin);
+    }
 
-    btnBack.textContent = "Back to work.";
-    btnBack.classList.remove("fs-btn-sleep");
-    btnBack.classList.add("fs-btn-day-primary");
-    btnEnd.textContent = "End session";
-    btnBreathe.style.display = "none";
+    function setTaskBanner(elId) {
+      var el = document.getElementById(elId);
+      if (!el) return;
+      el.textContent = task
+        ? "You said you were working on: " + task
+        : (reason === "pomodoro" ? "Focus Session Active" : "Schedule Block Active");
+    }
 
-    startFrictionTimer("q-countdown", "q-actions", 10);
+    function calcSchedEndTs() {
+      var parts = schedEnd.split(":").map(Number);
+      var d = new Date();
+      d.setHours(parts[0], parts[1], 0, 0);
+      if (d.getTime() <= nowMs) d.setDate(d.getDate() + 1);
+      return d.getTime();
+    }
 
-    btnBack.addEventListener("click", function () {
-      window.close();
-      setTimeout(function () { window.location.href = "about:blank"; }, 100);
-    });
-    btnEnd.addEventListener("click", async function () {
-      await chrome.storage.local.set({ futureself_pomodoro_active: false });
-      window.location.href = "https://" + site;
-    });
+    async function createDayOverride(durationMin) {
+      var stored = await chrome.storage.local.get("futureself_overrides");
+      var ov = stored.futureself_overrides || [];
+      ov.push({
+        domain: site, createdAt: nowMs,
+        expiresAt: nowMs + durationMin * 60 * 1000,
+        duration: durationMin, site: site, reason: "day_override"
+      });
+      await chrome.storage.local.set({ futureself_overrides: ov });
+    }
+
+    async function createDayOverrideUntil(expiresAt) {
+      var stored = await chrome.storage.local.get("futureself_overrides");
+      var ov = stored.futureself_overrides || [];
+      ov.push({
+        domain: site, createdAt: nowMs,
+        expiresAt: expiresAt,
+        duration: -1, site: site, reason: "day_end_block"
+      });
+      await chrome.storage.local.set({ futureself_overrides: ov });
+    }
+
+    // Replaces the actions div with Day Mode buttons, then wires them.
+    // Called before startFrictionTimer so buttons are ready when the timer reveals them.
+    function wireDayActions(actionsId) {
+      var el = document.getElementById(actionsId);
+      if (!el) return;
+
+      if (reason === "pomodoro") {
+        el.innerHTML =
+          '<button class="fs-btn fs-btn-day-primary" id="day-back">Back to work.</button>' +
+          '<button class="fs-btn fs-btn-override" style="opacity:0.55;font-size:13px;margin-top:6px" id="day-end">End session</button>';
+        document.getElementById("day-back").addEventListener("click", closePage);
+        document.getElementById("day-end").addEventListener("click", function () {
+          chrome.storage.local.set({ futureself_pomodoro_active: false }, function () {
+            window.location.href = "https://" + site;
+          });
+        });
+      } else {
+        var schedEndTs = calcSchedEndTs();
+        el.innerHTML =
+          '<button class="fs-btn fs-btn-day-primary" id="day-back">Back to work.</button>' +
+          '<div style="display:flex;gap:8px;margin-top:8px">' +
+            '<button class="fs-btn fs-btn-override" style="flex:1;opacity:0.55;font-size:13px" id="day-5min">5 min</button>' +
+            '<button class="fs-btn fs-btn-override" style="flex:1;opacity:0.55;font-size:13px" id="day-15min">15 min</button>' +
+            '<button class="fs-btn fs-btn-override" style="flex:1;opacity:0.55;font-size:11px" id="day-endblock">End block</button>' +
+          '</div>';
+        document.getElementById("day-back").addEventListener("click", closePage);
+        document.getElementById("day-5min").addEventListener("click", function () {
+          createDayOverride(5).then(function () { window.location.href = "https://" + site; });
+        });
+        document.getElementById("day-15min").addEventListener("click", function () {
+          createDayOverride(15).then(function () { window.location.href = "https://" + site; });
+        });
+        document.getElementById("day-endblock").addEventListener("click", function () {
+          createDayOverrideUntil(schedEndTs).then(function () { window.location.href = "https://" + site; });
+        });
+      }
+    }
+
+    function chooseDayExperience() {
+      var r = Math.random();
+      if (r < 0.40) return "roast";
+      if (r < 0.65) return "debt";
+      if (r < 0.85) return "typing";
+      return "fact";
+    }
+
+    // ── Route to experience ────────────────────
+
+    var exp = chooseDayExperience();
+    hideAllScreens();
+
+    if (exp === "roast" || exp === "fact") {
+
+      showScreen("screen-question");
+      document.getElementById("mode-badge").textContent = "Focus Mode";
+      document.getElementById("site-name").textContent = site.toLowerCase();
+      setTaskBanner("time-notice");
+
+      var pool    = exp === "roast" ? DAY_ROASTS : DAY_FACTS;
+      var rawText = pool[Math.floor(Math.random() * pool.length)];
+      document.getElementById("question-text").textContent = fillDayVars(rawText);
+
+      wireDayActions("q-actions");
+      startFrictionTimer("q-countdown", "q-actions", 10);
+
+    } else if (exp === "debt") {
+
+      showScreen("screen-slider");
+
+      var titleEl = document.querySelector("#screen-slider .fs-game-title");
+      if (titleEl) titleEl.textContent = "How much focus are you burning?";
+
+      var rangeEl = document.getElementById("sleep-slider");
+      if (rangeEl) rangeEl.style.display = "none";
+
+      var tier = FOCUS_DEBT_LEVELS[sessionCount];
+      document.getElementById("slider-emoji").textContent = tier.emoji;
+      document.getElementById("slider-label").textContent = tier.label;
+      document.getElementById("slider-desc").textContent  = tier.desc;
+      document.getElementById("slider-hours").textContent =
+        remainingMin > 0 ? remainingMin + " min left in session" : "Focus session active";
+      document.getElementById("slider-ring").style.borderColor = "#FBBF24";
+
+      wireDayActions("s-actions");
+      startFrictionTimer("s-countdown", "s-actions", 10);
+
+    } else { // commitment challenge
+
+      showScreen("screen-typing");
+
+      var subtitle = document.querySelector("#screen-typing .fs-game-subtitle");
+      if (subtitle) subtitle.textContent = "Type this to unlock the override:";
+
+      var phrase  = fillDayVars(DAY_COMMITMENT_PHRASES[Math.floor(Math.random() * DAY_COMMITMENT_PHRASES.length)]);
+      var display = document.getElementById("typing-display");
+      var input   = document.getElementById("typing-input");
+      var hint    = document.getElementById("typing-hint");
+
+      renderTypingChars(display, phrase, "");
+      input.focus();
+      display.addEventListener("click", function () { input.focus(); });
+      input.addEventListener("paste", function (e) { e.preventDefault(); });
+
+      input.addEventListener("input", function () {
+        var typed = input.value;
+        renderTypingChars(display, phrase, typed);
+        if (typed.length > 0) {
+          hint.textContent = typed.length + " / " + phrase.length + " characters";
+        }
+        if (typed.length >= phrase.length) {
+          var allCorrect = true;
+          for (var i = 0; i < phrase.length; i++) {
+            if (typed[i] !== phrase[i]) { allCorrect = false; break; }
+          }
+          if (allCorrect) {
+            display.classList.add("fs-hidden");
+            hint.classList.add("fs-hidden");
+            input.disabled = true;
+            var doneEl   = document.getElementById("typing-complete");
+            var doneText = doneEl.querySelector("p");
+            if (doneText) doneText.textContent = "Done. Now go finish what you started.";
+            doneEl.classList.remove("fs-hidden");
+            setTimeout(function () {
+              document.getElementById("t-actions").classList.add("fs-visible");
+            }, 1500);
+          }
+        }
+      });
+
+      wireDayActions("t-actions");
+      startFrictionTimer("t-countdown", "t-actions", 10);
+    }
   }
 })();

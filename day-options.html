@@ -793,7 +793,14 @@
         <div class="d-label">Blocked sites (day)</div>
         <div id="day-categories"></div>
         <div class="d-custom-row">
-          <input type="text" id="custom-site-input" class="d-custom-input" placeholder="e.g. example.com">
+          <input type="text" id="custom-site-input" class="d-custom-input" style="flex:1;" placeholder="e.g. example.com">
+          <select id="custom-site-category" class="d-num-input" style="width:130px;font-size:11px;">
+            <option value="custom">Custom</option>
+            <option value="Social media">Social Media</option>
+            <option value="Video">Video</option>
+            <option value="News & Forums">News & Forums</option>
+            <option value="Shopping">Shopping</option>
+          </select>
           <button class="d-btn-amber-sm" id="btn-add-site">+ Add</button>
         </div>
       </div>
@@ -844,6 +851,11 @@
 
   </div><!-- /d-columns -->
 
+    <div style="text-align:center;margin-top:16px;padding:16px 32px;border-top:1px solid var(--border);">
+      <a id="btn-logout-day" style="color:#e87272;text-decoration:none;font-size:13px;cursor:pointer;">Log out</a>
+    </div>
+
+  <script src="supabase-client.js"></script>
   <script src="day-options.js"></script>
 </body>
 </html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>FutureSelf – Auth Gate</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Figtree:wght@900&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 380px; height: 600px; overflow: hidden; background: #F5EDD8; font-family: 'DM Sans', sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+  .blob { position: absolute; bottom: -40px; right: -40px; width: 220px; height: 220px; background: #E8622A; opacity: 0.12; border-radius: 40% 60% 55% 45% / 45% 35% 65% 55%; pointer-events: none; z-index: 0; }
+  .content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 32px; }
+  .wordmark { font-family: 'Figtree', sans-serif; font-weight: 900; font-size: 38px; color: #0D0D0D; letter-spacing: -0.02em; line-height: 1; margin-bottom: 10px; }
+  .subtext { font-size: 13px; color: #3D3D3A; margin-bottom: 36px; }
+  .cta-btn { background: #E8622A; color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; padding: 14px 32px; border: 2px solid #0D0D0D; border-radius: 10px; box-shadow: 4px 4px 0px 0px #0D0D0D; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; }
+  .cta-btn:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0px 0px #0D0D0D; }
+  .cta-btn:active { transform: translate(4px, 4px); box-shadow: none; }
+  .footer-text { position: absolute; bottom: 24px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: #3D3D3A; opacity: 0.6; }
+</style>
+</head>
+<body>
+  <div class="blob"></div>
+  <div class="content">
+    <h1 class="wordmark">FutureSelf</h1>
+    <p class="subtext">Sign up to access FutureSelf</p>
+    <button class="cta-btn" type="button" id="authBtn">Log in / Sign up</button>
+  </div>
+  <span class="footer-text">Tomorrow will thank you.</span>
+</body>
+</html>
